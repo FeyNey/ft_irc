@@ -19,9 +19,13 @@ int ClientSocket::connect()
 void ClientSocket::interact()
 {
 	Request		request;
+
 	request.receive(_fd);
 	request.show();
+
+
 	Response	response(request);
+	
 	std::cout << response.str() << std::endl;
 	send(_fd, response.str().c_str(), response.str().size(), 0);
 }

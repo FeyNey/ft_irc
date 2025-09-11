@@ -15,9 +15,10 @@ class Request {
 		Request();
 		~Request();
 
-		void show();
-		void receive(int fd);
-
+		void	show();
+		void	receive(int fd);
+		int		ft_find(char *str, char c);
+		void	disconnected();
 
 	private :
 		char	_buffer[4096];
