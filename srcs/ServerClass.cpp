@@ -15,7 +15,8 @@ Server::Server(int port, std::string pwd) : _nbClients(0), _fdLSock(0)
 
 Server::~Server()
 {
-	std::cout << "Serveur Destructor called" << std::endl;
+	//liberer memoire client; TODO
+	// std::cout << "Serveur Destructor called" << std::endl;
 }
 
 void	Server::launchListenSocket()
@@ -27,8 +28,6 @@ void	Server::launchListenSocket()
 	pnode.events = POLLIN;
 	pnode.revents = 0;
 	_pollVec.push_back(pnode);
-
-	std::cout << _fdLSock << ", " << pnode.fd << ", " << pnode.events << ", " << _pollVec[0].revents << std::endl;
 }
 
 void	Server::_createClient()
@@ -45,7 +44,6 @@ void	Server::_createClient()
 
 void	Server::pollLoop()
 {
-	std::cout << "_nbClient + 1 : " << _nbClients + 1 << std::endl;
 	poll(&_pollVec[0], _nbClients + 1, 1000);
 	for (size_t i = 0; i < _nbClients + 1; i++)
 		if (_pollVec[i].revents == POLLIN)

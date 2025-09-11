@@ -19,6 +19,8 @@ void	Request:: receive(int fd)
 
 	_cmd = _str.substr(0, next);
 	_args = _str.substr(next + 1, _str.size() - next - 1);
+	std::cout << "Buffer :";
+	std::cout << _buffer << std::endl;
 }
 
 /* char buffer[1024];
