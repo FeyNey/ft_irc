@@ -1,5 +1,5 @@
 #include <ASocketClass.hpp>
-
+//test
 ASocket::ASocket() : _connected(false), _fd(-1)
 {
 	std::memset(&_addr, 0, sizeof(_addr));
