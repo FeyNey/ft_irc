@@ -13,11 +13,11 @@ class Response {
 
 		std::string str();
 		size_t size();
+		void makeResponse(bool unlocked, bool connected, std::string user);
 
 
 	private :
 		Response();
-		void _makeResponse();
 		std::string _response;
 		Request _request;
 

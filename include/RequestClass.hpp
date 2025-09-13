@@ -19,6 +19,11 @@ class Request {
 		void	receive(int fd);
 		int		ft_find(char *str, char c);
 		void	disconnected();
+		std::string getCmd();
+		std::string getArgs();
+		void		clear();
+
+
 
 	private :
 		char	_buffer[4096];

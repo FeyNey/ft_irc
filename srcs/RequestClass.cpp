@@ -34,7 +34,7 @@ void	Request:: receive(int fd)
 	_str = _buffer;
 
 	next = ft_find(_buffer, ' ');
-	std::cout << next << std::endl;
+	//std::cout << next << std::endl;
 	if (next == 0)
 	{
 		std::cout << " -- Invalid request -- " << std::endl;
@@ -46,10 +46,10 @@ void	Request:: receive(int fd)
 	_cmd = _str.substr(0, next);
 	_args = _str.substr(next + 1, _str.size() - next - 1);
 
-	std::cout << "Buffer : " << _buffer << std::endl;
-	std::cout << "next = " << next << std::endl;
-	std::cout << "Command : " << _cmd << std::endl;
-	std::cout << "args = " << _args << std::endl;
+	//std::cout << "Buffer : " << _buffer << std::endl;
+	//std::cout << "next = " << next << std::endl;
+	//std::cout << "Command : " << _cmd << std::endl;
+	//std::cout << "args = " << _args << std::endl;
 
 	// next = ft_find(_buffer, (char)13);
 	// std::cout << "? : " << next << std::endl;
@@ -86,3 +86,22 @@ void Request::disconnected()
 	_cmd.clear();
 	_args.clear();
 }
+
+std::string Request::getCmd()
+{
+	return	(_cmd);
+}
+
+std::string Request::getArgs()
+{
+	return	(_args.substr(0, _args.size() - 2));
+}
+
+void	Request::clear()
+{
+	_args.clear();
+	_cmd.clear();
+	_str.clear();
+	std::memset(_buffer, 0, 4096);
+}
+

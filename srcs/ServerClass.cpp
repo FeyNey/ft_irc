@@ -32,12 +32,13 @@ void	Server::launchListenSocket()
 
 void	Server::_createClient()
 {
-	ClientSocket *csock = new ClientSocket(_fdLSock);
+	ClientSocket *csock = new ClientSocket(_fdLSock, _pwd);
 	pollfd	pollNodeTmp;
 	pollNodeTmp.fd = csock->connect();
 	pollNodeTmp.events = POLLIN;
 	pollNodeTmp.revents = 0;
 	_pollVec.push_back(pollNodeTmp);
+	csock->_poll = &_pollVec.back();
 	_clientSocks.push_back(csock);
 	_nbClients++;
 }
@@ -48,6 +49,10 @@ void	Server::pollLoop()
 	for (size_t i = 0; i < _nbClients + 1; i++)
 		if (_pollVec[i].revents == POLLIN)
 			i == 0 ?  _createClient() : _clientSocks[i-1]->interact();
+		else if (_pollVec[i].revents == POLLOUT)
+			_clientSocks[i-1]->sendResponse();
+
+
 }
 
 void	Server::signal_handler(int sig)
