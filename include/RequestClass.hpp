@@ -17,7 +17,7 @@ class Request {
 
 		void	show();
 		void	receive(int fd);
-		int		ft_find(char *str, char c);
+		static int		ft_find(char *str, char c);
 		void	disconnected();
 		std::string getCmd();
 		std::string getArgs();

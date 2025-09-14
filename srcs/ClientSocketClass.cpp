@@ -33,6 +33,9 @@ void ClientSocket::_unlock(Response	&response)
 		if (args == _pwd)
 		{
 			_unlocked = true;
+			response.makeResponse(_unlocked, false, "");
+			_poll->events = POLLOUT;
+
 		}
 		else
 		{
@@ -55,13 +58,21 @@ void ClientSocket::interact()
 	_request.show();
 	cmd = _request.getCmd();
 	args = _request.getArgs();
+
+	// if (cmd == "ADMIN")
+	// {
+	// 	_unlocked = true;
+	// }
+
+
 	Response	response(_request);
 
 	if (_unlocked == false)
 	{
 		_unlock(response);
-		_response = response.str().c_str();
+		_response = response.str().c_str(); //?
 		_poll->events = POLLOUT;
+		return ;
 	}
 	else
 	{
@@ -71,19 +82,26 @@ void ClientSocket::interact()
 			_response = response.str().c_str();
 			_poll->events = POLLOUT;
 		}
-		else if(cmd.compare("NICK") == 0)
+		else if(cmd.compare("NICK") == 0) // verify that the nickname is not used ? \ // Message confirmation
 			_nick = args;
 		else if(cmd.compare("USER") == 0)
-			_username = args;
+			_username = args; // hostname and real name to set too
 		if(_nick.compare("") != 0 && _username.compare("") != 0)
 		{
 			_connected = true;
 			response.makeResponse(true, _connected, _nick);
-			_response = response.str().c_str();
+			_response = response.str().c_str(); //?
 			_poll->events = POLLOUT;
 		}
-
+		return ;
 	}
+
+	// if (_unlocked == true && Response::isacmd(cmd))
+	// {
+	// 	response.interactcmd(*this, cmd, args);
+	// 	_response = response.str().c_str();
+	// 	_poll->events = POLLOUT;
+	// }
 }
 
 void	ClientSocket::sendResponse()
@@ -101,4 +119,18 @@ ClientSocket::~ClientSocket()
 {
 	std::cout << "Client Destroyed" << std::endl;
 	close(_fd);
+}
+
+
+std::string	ClientSocket::getpwd()
+{
+	return(_pwd);
+}
+std::string	ClientSocket::getnick()
+{
+	return(_nick);
+}
+std::string	ClientSocket::getusername()
+{
+	return(_username);
 }

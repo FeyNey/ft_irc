@@ -94,7 +94,7 @@ std::string Request::getCmd()
 
 std::string Request::getArgs()
 {
-	return	(_args.substr(0, _args.size() - 2));
+	return	(_args.substr(0, _args.size() - 1)); // 2?
 }
 
 void	Request::clear()

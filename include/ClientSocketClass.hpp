@@ -18,6 +18,10 @@ class ClientSocket : public ASocket {
 		void	sendResponse();
 		void interact();
 		pollfd		*_poll;
+		std::string getpwd();
+		std::string getnick();
+		std::string getusername();
+
 
 		private:
 

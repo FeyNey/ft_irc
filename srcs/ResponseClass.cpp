@@ -1,4 +1,5 @@
 #include "ResponseClass.hpp"
+#include "ClientSocketClass.hpp"
 
 Response::Response(Request &request) : _request(request)
 {
@@ -20,22 +21,33 @@ void Response::makeResponse(bool unlocked, bool connected, std::string user)
 			_response = ":monserv CAP * LS :\r\n";
 		else if (args[0] == 'R' && args[1] == 'E' && args[2] == 'Q')
 			_response = ":monserv CAP * NAK :\r\n";
-		else if (args[0] == 'E' && args[1] == 'N' && args[1] == 'D')
-			_response = "";
+		else if (args[0] == 'E' && args[1] == 'N' && args[2] == 'D')
+			_response = ":monserv CAP * END:\r\n"; // je sais pas quoi mettre
 		return;
 	}
 	else if(!unlocked)
 	{
 		if (cmd.compare("PASS") == 0)
+		{
 			_response = ":monserv 464 * :Password incorrect\r\n";
+			std::cout << "J arrive ici " << std::endl;
+		}
 		else
 			_response = ":monserv 464 * :Password required\r\n";
 		return;
 	}
 	else if (cmd.compare("PASS") == 0)
 	{
-		_response = "";
+		_response = ":monserv 464 * :Password is valid\r\n"; // Faire une diff si c est la deuxieme fois ??
 	}
+//
+	// if (cmd.compare("NICK") == 0 && !connected)
+	// {
+		// _response = ":monserv 001 ";
+	// }
+//
+//
+
 	else if ((cmd.compare("NICK") == 0 || cmd.compare("USER")) == 0 && connected)
 	{
 		_response = ":monserv 001 " + user + " :Welcome...\r\n"
@@ -60,5 +72,59 @@ size_t Response::size()
 
 Response::~Response()
 {
+
+}
+
+bool	Response::isacmd(std::string cmd)
+{
+	static const char* commands[] = {
+		"NICK", "USER", "PASS", "PING", "JOIN", "PART", "QUIT", "PRIVMSG", "NOTICE",
+		"TOPIC", "NAMES", "LIST", "WHO", "WHOIS", "WHOWAS", "MODE", "KICK", "INVITE",
+		"OPER", "DIE", "RESTARD", "KILL", "SQUIT", "CONNECT" };
+
+	for (int i = 0; i < 24; i++)
+	{
+		if (cmd == commands[i])
+		{
+			std::cout << "cmd, foud it" << std::endl;
+			return 1;
+		}
+	}
+	std::cout << "cmd not found" << std::endl;
+	return (0);
+}
+
+std::string	Response::ping(std::string args, std::string username)
+{
+	if (args.empty() == 1)
+		return (":myserver 409 " + username + "No origin specified");
+	else if (args.find(" ") != std::string::npos) //found
+	{
+		std::string arg;
+
+		for (int i = 0; (args.c_str())[i] != ' ' && args.c_str(); i++)
+		{
+			arg = arg + (args.c_str())[i];
+		}
+		std::cout << "arg" << arg << std::endl; //debug a verif la suite de la commande a ete supp;
+		return("myserv PONG server :" + arg);
+	}
+	else //not found
+	{
+		return (":myserv PONG server :" + args);
+	}
+}
+
+void	Response::interactcmd(ClientSocket client, std::string cmd, std::string args)
+{
+	_response = "";
+
+	if (!isacmd(cmd))
+	{
+		_response = ":myserver 421 " + client.getusername() + " " + cmd + ":Unknown command";
+	}
+	if (cmd.compare("PING") == 0)
+		_response = ping(args, client.getusername());
+	std::cout << "okay then" << std::endl;
 
 }

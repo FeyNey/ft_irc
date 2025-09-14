@@ -51,8 +51,6 @@ void	Server::pollLoop()
 			i == 0 ?  _createClient() : _clientSocks[i-1]->interact();
 		else if (_pollVec[i].revents == POLLOUT)
 			_clientSocks[i-1]->sendResponse();
-
-
 }
 
 void	Server::signal_handler(int sig)
