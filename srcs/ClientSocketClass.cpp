@@ -72,9 +72,13 @@ void ClientSocket::interact()
 			_poll->events = POLLOUT;
 		}
 		else if(cmd.compare("NICK") == 0)
+		{
 			_nick = args;
+		}
 		else if(cmd.compare("USER") == 0)
+		{
 			_username = args;
+		}
 		if(_nick.compare("") != 0 && _username.compare("") != 0)
 		{
 			_connected = true;
@@ -82,7 +86,6 @@ void ClientSocket::interact()
 			_response = response.str().c_str();
 			_poll->events = POLLOUT;
 		}
-
 	}
 }
 

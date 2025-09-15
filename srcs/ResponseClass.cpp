@@ -36,7 +36,7 @@ void Response::makeResponse(bool unlocked, bool connected, std::string user)
 	{
 		_response = "";
 	}
-	else if ((cmd.compare("NICK") == 0 || cmd.compare("USER")) == 0 && connected)
+	else if ((cmd.compare("NICK") == 0 || cmd.compare("USER") == 0) && connected)
 	{
 		_response = ":monserv 001 " + user + " :Welcome...\r\n"
 		":monserv 002 " + user + " :Your host is monserv, running version 1.0\r\n"
