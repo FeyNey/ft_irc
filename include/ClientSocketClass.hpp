@@ -28,6 +28,7 @@ class ClientSocket : public ASocket {
 		socklen_t 	_len;
 		int			_listenFd;
 		bool		_unlocked;
+		bool		_key;
 		bool		_connected;
 		void _unlock(Response	&response);
 		Request		_request;

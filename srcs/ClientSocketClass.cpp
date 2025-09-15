@@ -4,6 +4,7 @@ ClientSocket::ClientSocket(int listenFd, std::string pwd) : _listenFd(listenFd),
 {
 	std::cout << "new client has been created" << std::endl;
 	_len = sizeof(_addr);
+	_key = 0;
 }
 
 int ClientSocket::connect()
@@ -70,16 +71,16 @@ void ClientSocket::interact()
 	if (_unlocked == false)
 	{
 		_unlock(response);
-		_response = response.str().c_str(); //?
+		_response = response.str();
 		_poll->events = POLLOUT;
 		return ;
 	}
-	else
+	else if (_key == 0)
 	{
 		if(cmd.compare("CAP") == 0)
 		{
 			response.makeResponse(true, _connected, _nick);
-			_response = response.str().c_str();
+			_response = response.str();
 			_poll->events = POLLOUT;
 		}
 		else if(cmd.compare("NICK") == 0) // verify that the nickname is not used ? \ // Message confirmation
@@ -90,26 +91,29 @@ void ClientSocket::interact()
 		{
 			_connected = true;
 			response.makeResponse(true, _connected, _nick);
-			_response = response.str().c_str(); //?
+			_response = response.str();
 			_poll->events = POLLOUT;
+			_key = 1;
 		}
 		return ;
 	}
-
-	// if (_unlocked == true && Response::isacmd(cmd))
-	// {
-	// 	response.interactcmd(*this, cmd, args);
-	// 	_response = response.str().c_str();
-	// 	_poll->events = POLLOUT;
-	// }
+	if (_key == 1)
+	{
+		response.interactcmd(*this, cmd, args);
+		_response = response.str();
+		std::cout << "reponse = " << _response << std::endl;
+		_poll->events = POLLOUT;
+		return ;
+	}
 }
 
 void	ClientSocket::sendResponse()
 {
+	int i = 0;
 	if (_response.size() > 0)
 	{
-		send(_fd, _response.c_str(), _response.size(), 0);
-		std::cout << "Reponse : " << _response << std::endl;
+		i = send(_fd, _response.c_str(), _response.size(), 0);
+		std::cout << "Reponse : " << _response << " ,  send return = " << i << std::endl;
 	}
 	_poll->events = POLLIN;
 	_request.clear();
@@ -117,7 +121,7 @@ void	ClientSocket::sendResponse()
 
 ClientSocket::~ClientSocket()
 {
-	std::cout << "Client Destroyed" << std::endl;
+	std::cout << "ClientSocket Destroyed" << std::endl;
 	close(_fd);
 }
 

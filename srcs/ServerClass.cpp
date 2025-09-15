@@ -48,9 +48,14 @@ void	Server::pollLoop()
 	poll(&_pollVec[0], _nbClients + 1, 1000);
 	for (size_t i = 0; i < _nbClients + 1; i++)
 		if (_pollVec[i].revents == POLLIN)
+		{
 			i == 0 ?  _createClient() : _clientSocks[i-1]->interact();
+		}
 		else if (_pollVec[i].revents == POLLOUT)
+		{
 			_clientSocks[i-1]->sendResponse();
+			std::cout << _clientSocks[i - 1]->getusername() << "<-- username of my client" << std::endl;
+		}
 }
 
 void	Server::signal_handler(int sig)

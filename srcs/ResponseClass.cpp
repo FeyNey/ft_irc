@@ -22,7 +22,7 @@ void Response::makeResponse(bool unlocked, bool connected, std::string user)
 		else if (args[0] == 'R' && args[1] == 'E' && args[2] == 'Q')
 			_response = ":monserv CAP * NAK :\r\n";
 		else if (args[0] == 'E' && args[1] == 'N' && args[2] == 'D')
-			_response = ":monserv CAP * END:\r\n"; // je sais pas quoi mettre
+			_response = ":monserv CAP * END:\r\n";
 		return;
 	}
 	else if(!unlocked)
@@ -30,7 +30,6 @@ void Response::makeResponse(bool unlocked, bool connected, std::string user)
 		if (cmd.compare("PASS") == 0)
 		{
 			_response = ":monserv 464 * :Password incorrect\r\n";
-			std::cout << "J arrive ici " << std::endl;
 		}
 		else
 			_response = ":monserv 464 * :Password required\r\n";
@@ -48,7 +47,7 @@ void Response::makeResponse(bool unlocked, bool connected, std::string user)
 //
 //
 
-	else if ((cmd.compare("NICK") == 0 || cmd.compare("USER")) == 0 && connected)
+	else if ((cmd.compare("NICK") == 0 || cmd.compare("USER") == 0) && connected)
 	{
 		_response = ":monserv 001 " + user + " :Welcome...\r\n"
 		":monserv 002 " + user + " :Your host is monserv, running version 1.0\r\n"
@@ -117,11 +116,11 @@ std::string	Response::ping(std::string args, std::string username)
 
 void	Response::interactcmd(ClientSocket client, std::string cmd, std::string args)
 {
-	_response = "";
+	_response = " ";
 
 	if (!isacmd(cmd))
 	{
-		_response = ":myserver 421 " + client.getusername() + " " + cmd + ":Unknown command";
+		_response = ":myserver 421 " + client.getusername() + " " + cmd + ":Unknown command\r\n";
 	}
 	if (cmd.compare("PING") == 0)
 		_response = ping(args, client.getusername());
