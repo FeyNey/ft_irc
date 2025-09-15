@@ -16,20 +16,22 @@ class Request {
 		~Request();
 
 		void	show();
+		size_t	size();
 		void	receive(int fd);
-		int		ft_find(char *str, char c);
+		int		ft_find(std::string str, char c);
 		void	disconnected();
 		std::string getCmd();
 		std::string getArgs();
 		void		clear();
+		std::vector<std::string> split(std::string str);
 
 
 
 	private :
 		char	_buffer[4096];
-		std::string	_str;
-		std::string	_cmd;
-		std::string	_args;
+		std::vector<std::string>	_requests;
+		std::vector<std::string>	_cmds;
+		std::vector<std::string>	_args;
 
 
 };

@@ -16,16 +16,13 @@ int ClientSocket::connect()
 	return (_fd);
 }
 
-void ClientSocket::_unlock(Response	&response)
+void ClientSocket::_unlock(Response	&response, std::string cmd, std::string args)
 {
-	std::string	cmd;
-	std::string	args;
-	cmd = _request.getCmd();
-	args = _request.getArgs();
 	if(cmd.compare("CAP") == 0)
 	{
-		response.makeResponse(_unlocked, false, "");
+		response.makeResponse(_unlocked, false, "", cmd, args);
 		_poll->events = POLLOUT;
+
 		return;
 	}
 	else if (cmd.compare("PASS") == 0)
@@ -36,30 +33,22 @@ void ClientSocket::_unlock(Response	&response)
 		}
 		else
 		{
-			response.makeResponse(_unlocked, false, "");
+			response.makeResponse(_unlocked, false, "", cmd, args);
 			_poll->events = POLLOUT;
 		}
 	}
-	else
+	else if (cmd.compare("JOIN") != 0)
 	{
-		response.makeResponse(_unlocked, false, "");
+		response.makeResponse(_unlocked, false, "", cmd, args);
 		_poll->events = POLLOUT;
 	}
 }
 
-void ClientSocket::interact()
+void ClientSocket::execute(std::string cmd, std::string args, Response	&response)
 {
-	std::string	cmd;
-	std::string	args;
-	_request.receive(_fd);
-	_request.show();
-	cmd = _request.getCmd();
-	args = _request.getArgs();
-	Response	response(_request);
-
 	if (_unlocked == false)
 	{
-		_unlock(response);
+		_unlock(response, cmd, args);
 		_response = response.str().c_str();
 		_poll->events = POLLOUT;
 	}
@@ -67,7 +56,7 @@ void ClientSocket::interact()
 	{
 		if(cmd.compare("CAP") == 0)
 		{
-			response.makeResponse(true, _connected, _nick);
+			response.makeResponse(true, _connected, _nick, cmd, args);
 			_response = response.str().c_str();
 			_poll->events = POLLOUT;
 		}
@@ -82,10 +71,26 @@ void ClientSocket::interact()
 		if(_nick.compare("") != 0 && _username.compare("") != 0)
 		{
 			_connected = true;
-			response.makeResponse(true, _connected, _nick);
+			response.makeResponse(true, _connected, _nick, cmd, args);
 			_response = response.str().c_str();
 			_poll->events = POLLOUT;
 		}
+	}
+}
+
+
+void ClientSocket::interact()
+{
+	std::string	cmd;
+	std::string	args;
+	_request.receive(_fd);
+	_request.show();
+	Response	response(_request);
+	for (size_t i = 0; i < _request.size(); i++)
+	{
+		cmd = _request.getCmd();
+		args = _request.getArgs();
+		execute(cmd, args, response);
 	}
 }
 

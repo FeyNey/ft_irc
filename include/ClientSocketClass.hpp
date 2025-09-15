@@ -17,6 +17,8 @@ class ClientSocket : public ASocket {
 		int connect();
 		void	sendResponse();
 		void interact();
+		void execute(std::string cmd, std::string args, Response	&response);
+
 		pollfd		*_poll;
 
 		private:
@@ -25,7 +27,7 @@ class ClientSocket : public ASocket {
 		int			_listenFd;
 		bool		_unlocked;
 		bool		_connected;
-		void _unlock(Response	&response);
+		void _unlock(Response	&response, std::string cmd, std::string args);
 		Request		_request;
 		std::string _response;
 		std::string	_pwd;

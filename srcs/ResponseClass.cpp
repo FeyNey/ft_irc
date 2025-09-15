@@ -5,23 +5,15 @@ Response::Response(Request &request) : _request(request)
 
 }
 
-void Response::makeResponse(bool unlocked, bool connected, std::string user)
+void Response::makeResponse(bool unlocked, bool connected, std::string user, std::string cmd, std::string args)
 {
-	std::string cmd;
-	std::string args;
-
-
 	_response = "";
-	cmd = _request.getCmd();
-	args = _request.getArgs();
 	if (cmd.compare("CAP") == 0)
 	{
 		if (args[0] == 'L' && args[1] == 'S')
-			_response = ":monserv CAP * LS :\r\n";
+		_response = ":monserv CAP * LS :\r\n";
 		else if (args[0] == 'R' && args[1] == 'E' && args[2] == 'Q')
-			_response = ":monserv CAP * NAK :\r\n";
-		else if (args[0] == 'E' && args[1] == 'N' && args[1] == 'D')
-			_response = "";
+		_response = ":monserv CAP * NAK :\r\n";
 		return;
 	}
 	else if(!unlocked)
