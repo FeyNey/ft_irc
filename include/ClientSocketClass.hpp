@@ -20,12 +20,17 @@ class ClientSocket : public ASocket {
 		void execute(std::string cmd, std::string args, Response	&response);
 
 		pollfd		*_poll;
+		std::string getpwd();
+		std::string getnick();
+		std::string getusername();
+
 
 		private:
 
 		socklen_t 	_len;
 		int			_listenFd;
 		bool		_unlocked;
+		bool		_key;
 		bool		_connected;
 		void _unlock(Response	&response, std::string cmd, std::string args);
 		Request		_request;

@@ -104,13 +104,6 @@ int	Request::ft_find(std::string str, char c)
 	return (0);
 }
 
-void Request::disconnected()
-{
-	_requests.clear();
-	_cmds.clear();
-	_args.clear();
-}
-
 std::string Request::getCmd()
 {
 	std::string tmp = _cmds[0];
@@ -132,4 +125,3 @@ void	Request::clear()
 	_requests.clear();
 	std::memset(_buffer, 0, 4096);
 }
-

@@ -4,6 +4,7 @@ ClientSocket::ClientSocket(int listenFd, std::string pwd) : _listenFd(listenFd),
 {
 	std::cout << "new client has been created" << std::endl;
 	_len = sizeof(_addr);
+	_key = 0;
 }
 
 int ClientSocket::connect()
@@ -25,7 +26,7 @@ void ClientSocket::_unlock(Response	&response, std::string cmd, std::string args
 
 		return;
 	}
-	else if (cmd.compare("PASS") == 0)
+	else if (cmd.compare("PASS") == 0 && (_key == 0))
 	{
 		if (args == _pwd)
 		{
@@ -74,10 +75,17 @@ void ClientSocket::execute(std::string cmd, std::string args, Response	&response
 			response.makeResponse(true, _connected, _nick, cmd, args);
 			_response = response.str().c_str();
 			_poll->events = POLLOUT;
+			_key = 1;
+		}
+		if (_key == 1)
+		{
+			response.interactcmd(this, cmd, args);
+			_response = response.str();
+			_poll->events = POLLOUT;
+			return ;
 		}
 	}
 }
-
 
 void ClientSocket::interact()
 {

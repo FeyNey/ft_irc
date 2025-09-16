@@ -5,6 +5,8 @@
 #include <sstream>
 #include "RequestClass.hpp"
 
+class ClientSocket;
+
 class Response {
 
 	public :
@@ -15,8 +17,9 @@ class Response {
 		size_t size();
 		void makeResponse(bool unlocked, bool connected, std::string user, std::string cmd, std::string args);
 		void clear();
-
-
+		void	interactcmd(ClientSocket *client, std::string cmd, std::string args);
+		static bool	isacmd(std::string cmd);
+		std::string	ping(std::string args, std::string username);
 
 	private :
 		Response();
