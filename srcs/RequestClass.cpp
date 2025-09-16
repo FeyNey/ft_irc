@@ -54,9 +54,9 @@ void	Request:: receive(int fd)
 		if (next == 0)
 		{
 			std::cout << " -- Invalid request -- " << std::endl;
-			std::cout << "No space found in the request" << std::endl;
+			std::cout << "No space found in the request" << std::endl;//TODO reponse a envoyer
 			this->disconnected();
-			return ;
+			continue;
 		}
 		_cmds.push_back(_requests[i].substr(0, next));
 		_args.push_back(_requests[i].substr(next + 1, _requests[i].size() - next - 1));
