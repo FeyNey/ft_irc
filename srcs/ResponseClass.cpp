@@ -76,6 +76,7 @@ Response::~Response()
 
 bool	Response::isacmd(std::string cmd)
 {
+	std::cout << cmd << "<-- commande" << std::endl;
 	static const char* commands[] = {
 		"NICK", "USER", "PASS", "PING", "JOIN", "PART", "QUIT", "PRIVMSG", "NOTICE",
 		"TOPIC", "NAMES", "LIST", "WHO", "WHOIS", "WHOWAS", "MODE", "KICK", "INVITE",
@@ -117,13 +118,14 @@ std::string	Response::ping(std::string args, std::string username)
 void	Response::interactcmd(ClientSocket *client, std::string cmd, std::string args)
 {
 	_response = " ";
-
+	std::cout << "test : " << cmd << " "<< isacmd(cmd) << std::endl;
 	if (!isacmd(cmd))
 	{
+		// std::cout << "test : " << isacmd(cmd) << std::endl;
 		_response = ":myserver 421 " + client->getusername() + " " + cmd + ":Unknown command\r\n";
 	}
 	if (cmd.compare("PING") == 0)
 		_response = ping(args, client->getusername());
-	std::cout << "okay then" << std::endl;
+	// std::cout << "okay then" << std::endl;
 
 }

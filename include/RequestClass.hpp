@@ -18,7 +18,6 @@ class Request {
 		void	show();
 		void	receive(int fd);
 		static int		ft_find(char *str, char c);
-		void	disconnected();
 		std::string getCmd();
 		std::string getArgs();
 		void		clear();

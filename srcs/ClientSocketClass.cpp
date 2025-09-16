@@ -99,6 +99,7 @@ void ClientSocket::interact()
 	}
 	if (_key == 1)
 	{
+		std::cout << "Cmd : " << cmd << std::endl;
 		response.interactcmd(this, cmd, args);
 		_response = response.str();
 		std::cout << "reponse = " << _response << std::endl;

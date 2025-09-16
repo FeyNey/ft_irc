@@ -21,13 +21,13 @@ void	Request:: receive(int fd)
 	if (check == 0)
 	{
 		std::cout << "Client disconnected" << std::endl;
-		this->disconnected(); // set all args to 0, empty
+		this->clear(); // set all args to 0, empty
 		return ;
 	}
 	if (check < 0)
 	{
 		std::cout << "Recv failed" << std::endl;
-		this->disconnected(); // set all args to 0
+		this->clear(); // set all args to 0
 		return ;
 	}
 
@@ -35,13 +35,6 @@ void	Request:: receive(int fd)
 
 	next = ft_find(_buffer, ' ');
 	//std::cout << next << std::endl;
-	if (next == 0)
-	{
-		std::cout << " -- Invalid request -- " << std::endl;
-		std::cout << "No space found in the request" << std::endl;
-		this->disconnected();
-		return ;
-	}
 
 	_cmd = _str.substr(0, next);
 	_args = _str.substr(next + 1, _str.size() - next - 1);
@@ -78,13 +71,6 @@ int	Request::ft_find(char *str, char c)
 			return (i);
 	}
 	return (0);
-}
-
-void Request::disconnected()
-{
-	_str.clear();
-	_cmd.clear();
-	_args.clear();
 }
 
 std::string Request::getCmd()
