@@ -37,7 +37,7 @@ void ClientSocket::_unlock(Response	&response, std::string cmd, std::string args
 			_poll->events = POLLOUT;
 		}
 	}
-	else if (cmd.compare("JOIN") != 0)
+	else
 	{
 		response.makeResponse(_unlocked, false, "", cmd, args);
 		_poll->events = POLLOUT;
