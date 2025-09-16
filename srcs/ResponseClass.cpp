@@ -3,7 +3,7 @@
 
 Response::Response(Request &request) : _request(request)
 {
-
+	_response = "";
 }
 
 void Response::makeResponse(bool unlocked, bool connected, std::string user)
@@ -114,16 +114,16 @@ std::string	Response::ping(std::string args, std::string username)
 	}
 }
 
-void	Response::interactcmd(ClientSocket client, std::string cmd, std::string args)
+void	Response::interactcmd(ClientSocket *client, std::string cmd, std::string args)
 {
 	_response = " ";
 
 	if (!isacmd(cmd))
 	{
-		_response = ":myserver 421 " + client.getusername() + " " + cmd + ":Unknown command\r\n";
+		_response = ":myserver 421 " + client->getusername() + " " + cmd + ":Unknown command\r\n";
 	}
 	if (cmd.compare("PING") == 0)
-		_response = ping(args, client.getusername());
+		_response = ping(args, client->getusername());
 	std::cout << "okay then" << std::endl;
 
 }
