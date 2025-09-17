@@ -33,10 +33,10 @@ void	Request:: receive(int fd)
 	size_t	next = 0;
 
 	//pas de \r dans la request ??? avec nc* //ended with \r\n normaly
-	check = recv(fd, &_buffer, 4096, 0); // TODO Verif
+	check = recv(fd, &_buffer, 4096, 0);
 	if (check == 0)
 	{
-		std::cout << "Client disconected" << std::endl;
+		std::cout << "Client disconnected" << std::endl;
 		this->clear(); // set all args to 0, empty
 		return ;
 	}
@@ -48,13 +48,31 @@ void	Request:: receive(int fd)
 	}
 	_requests = split(_buffer);
 
-	// std::cout << "request[0] : " << _requests[0] << std::endl;
-
 	for (size_t i = 0; i < _requests.size(); i++)
 	{
+		next = ft_find(_requests[i], ' ');
+		if (next == 0)
+		{
+			std::cout << " -- Invalid request -- " << std::endl;
+			std::cout << "No space found in the request" << std::endl;//TODO reponse a envoyer
+			this->clear();
+			continue;
+		}
 		_cmds.push_back(_requests[i].substr(0, next));
 		_args.push_back(_requests[i].substr(next + 1, _requests[i].size() - next - 1));
 	}
+
+	//std::cout << "Buffer : " << _buffer << std::endl;
+	//std::cout << "next = " << next << std::endl;
+	//std::cout << "Command : " << _cmd << std::endl;
+	//std::cout << "args = " << _args << std::endl;
+
+	// next = ft_find(_buffer, (char)13);
+	// std::cout << "? : " << next << std::endl;
+
+	// next = ft_find(_buffer, (char)10);
+	// std::cout << "? : " << next << std::endl;
+
 }
 
 void Request::show()

@@ -47,7 +47,6 @@ void ClientSocket::_unlock(Response	&response, std::string cmd, std::string args
 
 void ClientSocket::execute(std::string cmd, std::string args, Response	&response)
 {
-	std::cout << "test" << std::endl;
 	if (_unlocked == false)
 	{
 		_unlock(response, cmd, args);
