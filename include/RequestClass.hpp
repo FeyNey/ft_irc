@@ -8,6 +8,7 @@
 #include <netinet/in.h>
 #include <fcntl.h>
 #include <cstring>
+#include <vector>
 
 class Request {
 

@@ -47,6 +47,7 @@ void ClientSocket::_unlock(Response	&response, std::string cmd, std::string args
 
 void ClientSocket::execute(std::string cmd, std::string args, Response	&response)
 {
+	std::cout << "test" << std::endl;
 	if (_unlocked == false)
 	{
 		_unlock(response, cmd, args);
@@ -117,4 +118,17 @@ ClientSocket::~ClientSocket()
 {
 	std::cout << "Client Destroyed" << std::endl;
 	close(_fd);
+}
+
+std::string	ClientSocket::getpwd()
+{
+	return(_pwd);
+}
+std::string	ClientSocket::getnick()
+{
+	return(_nick);
+}
+std::string	ClientSocket::getusername()
+{
+	return(_username);
 }

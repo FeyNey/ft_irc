@@ -54,7 +54,7 @@ void	Server::pollLoop()
 		else if (_pollVec[i].revents == POLLOUT)
 		{
 			_clientSocks[i-1]->sendResponse();
-			std::cout << _clientSocks[i - 1]->getusername() << "<-- username of my client" << std::endl;
+			// std::cout << _clientSocks[i - 1]->getusername() << "<-- username of my client" << std::endl;
 		}
 }
 
