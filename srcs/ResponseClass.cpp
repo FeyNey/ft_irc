@@ -79,7 +79,7 @@ std::string	Response::ping(std::string args, std::string username)
 {
 	std::cout << "Pong function activated" << std::endl;
 	if (args.empty() == 1)
-		return (":myserver 409 " + username + "No origin specified");
+		return (":myserver 409 " + username + "No origin specified\r\n");
 	else if (args.find(" ") != std::string::npos) //found
 	{
 		std::string arg;
@@ -89,11 +89,11 @@ std::string	Response::ping(std::string args, std::string username)
 			arg = arg + (args.c_str())[i];
 		}
 		std::cout << "arg" << arg << std::endl; //debug a verif la suite de la commande a ete supp;
-		return("myserv PONG server :" + arg);
+		return("myserv PONG server :" + arg + "\r\n");
 	}
 	else //not found
 	{
-		return (":myserv PONG server :" + args);
+		return (":myserv PONG server :" + args + "\r\n");
 	}
 }
 
