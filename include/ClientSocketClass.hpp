@@ -31,6 +31,7 @@ class ClientSocket : public ASocket {
 		int			_listenFd;
 		bool		_unlocked;
 		bool		_key;
+		bool		_cap;
 		bool		_connected;
 		void _unlock(Response	&response, std::string cmd, std::string args);
 		Request		_request;

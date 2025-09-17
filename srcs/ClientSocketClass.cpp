@@ -5,6 +5,7 @@ ClientSocket::ClientSocket(int listenFd, std::string pwd) : _listenFd(listenFd),
 	std::cout << "new client has been created" << std::endl;
 	_len = sizeof(_addr);
 	_key = 0;
+	_cap = 1;
 }
 
 int ClientSocket::connect()
@@ -57,9 +58,16 @@ void ClientSocket::execute(std::string cmd, std::string args, Response	&response
 	{
 		if(cmd.compare("CAP") == 0)
 		{
+			_cap = 0;
 			response.makeResponse(true, _connected, _nick, cmd, args);
 			_response = response.str().c_str();
 			_poll->events = POLLOUT;
+			if (args[0] == 'E' && args[1] == 'N' && args[2] == 'D')
+			{
+					std::cout << "Cap re -set to 1" << std::endl;
+					_cap = 1;
+			}
+			return ;
 		}
 		else if(cmd.compare("NICK") == 0)
 		{
@@ -69,19 +77,23 @@ void ClientSocket::execute(std::string cmd, std::string args, Response	&response
 		{
 			_username = args;
 		}
-		if(_nick.compare("") != 0 && _username.compare("") != 0)
+		if(_nick.compare("") != 0 && _username.compare("") != 0 && (_key == 0))
 		{
 			_connected = true;
 			response.makeResponse(true, _connected, _nick, cmd, args);
 			_response = response.str().c_str();
 			_poll->events = POLLOUT;
 			_key = 1;
+			std::cout << "Key set to 1" << std::endl;
+			return ;
 		}
-		if (_key == 1)
+		if (_key == 1 && _cap == 1)
 		{
+			std::cout << "Interact cmd" << std::endl;
 			response.interactcmd(this, cmd, args);
 			_response = response.str();
 			_poll->events = POLLOUT;
+			std::cout << "Reponse " << _response << std::endl;
 			return ;
 		}
 	}
@@ -106,7 +118,11 @@ void	ClientSocket::sendResponse()
 {
 	if (_response.size() > 0)
 	{
-		send(_fd, _response.c_str(), _response.size(), 0);
+		if (send(_fd, _response.c_str(), _response.size(), 0) == -1) // if 0 connextion closed
+		{
+			std::cout << "Error send return" << std::endl;
+			return ;
+		}
 		std::cout << "Reponse : " << _response << std::endl;
 	}
 	_poll->events = POLLIN;

@@ -10,9 +10,9 @@ void Response::makeResponse(bool unlocked, bool connected, std::string user, std
 	if (cmd.compare("CAP") == 0)
 	{
 		if (args[0] == 'L' && args[1] == 'S')
-		_response += ":monserv CAP * LS :\r\n";
+			_response += ":monserv CAP * LS :\r\n";
 		else if (args[0] == 'R' && args[1] == 'E' && args[2] == 'Q')
-		_response += ":monserv CAP * NAK :\r\n";
+			_response += ":monserv CAP * NAK :\r\n";
 		return;
 	}
 	else if(!unlocked)
@@ -58,7 +58,6 @@ Response::~Response()
 
 bool	Response::isacmd(std::string cmd)
 {
-	std::cout << cmd << "<-- commande" << std::endl;
 	static const char* commands[] = {
 		"NICK", "USER", "PASS", "PING", "JOIN", "PART", "QUIT", "PRIVMSG", "NOTICE",
 		"TOPIC", "NAMES", "LIST", "WHO", "WHOIS", "WHOWAS", "MODE", "KICK", "INVITE",
@@ -72,12 +71,13 @@ bool	Response::isacmd(std::string cmd)
 			return 1;
 		}
 	}
-	std::cout << "cmd not found" << std::endl;
+	std::cout << "cmd, not found" << std::endl;
 	return (0);
 }
 
 std::string	Response::ping(std::string args, std::string username)
 {
+	std::cout << "Pong function activated" << std::endl;
 	if (args.empty() == 1)
 		return (":myserver 409 " + username + "No origin specified");
 	else if (args.find(" ") != std::string::npos) //found
@@ -100,10 +100,9 @@ std::string	Response::ping(std::string args, std::string username)
 void	Response::interactcmd(ClientSocket *client, std::string cmd, std::string args)
 {
 	_response = " ";
-	std::cout << "test : " << cmd << " "<< isacmd(cmd) << std::endl;
+	std::cout << "Interact cmd" << std::endl;
 	if (!isacmd(cmd))
 	{
-		// std::cout << "test : " << isacmd(cmd) << std::endl;
 		_response = ":myserver 421 " + client->getusername() + " " + cmd + ":Unknown command\r\n";
 	}
 	if (cmd.compare("PING") == 0)
