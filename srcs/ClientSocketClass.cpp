@@ -3,8 +3,9 @@
 ClientSocket::ClientSocket(int listenFd, std::string pwd) : _listenFd(listenFd), _unlocked(false), _connected(false), _pwd(pwd), _nick(""), _username("")
 {
 	std::cout << "new client has been created" << std::endl;
+	cmdsMap["PING"] = &ClientSocket::ping;
+	cmdsMap["MODE"] = &ClientSocket::mode;
 	_len = sizeof(_addr);
-	_key = 0;
 }
 
 int ClientSocket::connect()
@@ -13,7 +14,6 @@ int ClientSocket::connect()
 	fcntl(_fd, F_SETFL, O_NONBLOCK);
 	if (_fd == -1)
 		throw std::runtime_error("ERROR : Accept failed");
-	_connected = true;
 	return (_fd);
 }
 
@@ -26,7 +26,7 @@ void ClientSocket::_unlock(Response	&response, std::string cmd, std::string args
 
 		return;
 	}
-	else if (cmd.compare("PASS") == 0 && (_key == 0))
+	else if (cmd.compare("PASS") == 0)
 	{
 		if (args == _pwd)
 		{
@@ -38,11 +38,26 @@ void ClientSocket::_unlock(Response	&response, std::string cmd, std::string args
 			_poll->events = POLLOUT;
 		}
 	}
-	else if (cmd.compare("JOIN") != 0)
+	else
 	{
 		response.makeResponse(_unlocked, false, "", cmd, args);
 		_poll->events = POLLOUT;
 	}
+}
+
+bool	ClientSocket::isacmd(std::string cmd)
+{
+	static const char* commands[] = {
+		"PING", "MODE"/*, "USER", "PASS", "JOIN", "PART", "QUIT", "PRIVMSG", "NOTICE",
+		"TOPIC", "NAMES", "LIST", "WHO", "WHOIS", "WHOWAS", "NICK", "KICK", "INVITE",
+		"OPER", "DIE", "RESTARD", "KILL", "SQUIT", "CONNECT" */ };
+
+	for (int i = 0; i < 2; i++)
+	{
+		if (cmd == commands[i])
+			return 1;
+	}
+	return (0);
 }
 
 void ClientSocket::execute(std::string cmd, std::string args, Response	&response)
@@ -69,17 +84,16 @@ void ClientSocket::execute(std::string cmd, std::string args, Response	&response
 		{
 			_username = args;
 		}
-		if(_nick.compare("") != 0 && _username.compare("") != 0)
+		if(_nick.compare("") != 0 && _username.compare("") != 0 && !_connected)
 		{
 			_connected = true;
 			response.makeResponse(true, _connected, _nick, cmd, args);
 			_response = response.str().c_str();
 			_poll->events = POLLOUT;
-			_key = 1;
 		}
-		if (_key == 1)
+		else if (_connected)
 		{
-			response.interactcmd(this, cmd, args);
+			interactcmd(cmd, args, response);
 			_response = response.str();
 			_poll->events = POLLOUT;
 			return ;
@@ -130,4 +144,44 @@ std::string	ClientSocket::getnick()
 std::string	ClientSocket::getusername()
 {
 	return(_username);
+}
+
+void	ClientSocket::interactcmd(std::string cmd, std::string args, Response &response)
+{
+	if (!isacmd(cmd))
+		response.addResponse(":myserver 421 " + _username + " " + cmd + ":Unknown command", _poll);
+	else
+		(this->*cmdsMap[cmd])(args, response);
+}
+
+int	ClientSocket::ping(std::string args, Response &response)
+{
+	if (args.empty() == 1)
+		response.addResponse(":myserver 409 " + _username + "No origin specified", _poll);
+	else //not found
+	{
+		response.addResponse(":monserv PONG monserv :" + args, _poll);
+		return (1);
+	}
+	return(1);
+}
+
+int	ClientSocket::mode(std::string args, Response &response)
+{
+	/* if (args.empty() == 1)
+		response.addResponse(":myserver 409 " + _username + "No origin specified"); */
+	if (args.find("+i")) //found
+	{
+		std::string nick = args.substr(0, args.find(" "));
+		if (nick.compare(_nick) != 0)
+			response.addResponse(":myserv 502" + nick + ":Cannot change mode for other users", _poll);
+		else
+			response.addResponse(":" + _nick + "!" + _username + "@monserv MODE " + _nick +" +i", _poll);
+	}
+	else //not found
+	{
+		response.addResponse(":myserv PONG server :" + args, _poll);
+		return (1);
+	}
+	return(1);
 }

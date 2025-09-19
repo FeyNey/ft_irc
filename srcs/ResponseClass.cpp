@@ -56,58 +56,9 @@ Response::~Response()
 
 }
 
-bool	Response::isacmd(std::string cmd)
+
+void Response::addResponse(std::string str, pollfd *pollFd)
 {
-	std::cout << cmd << "<-- commande" << std::endl;
-	static const char* commands[] = {
-		"NICK", "USER", "PASS", "PING", "JOIN", "PART", "QUIT", "PRIVMSG", "NOTICE",
-		"TOPIC", "NAMES", "LIST", "WHO", "WHOIS", "WHOWAS", "MODE", "KICK", "INVITE",
-		"OPER", "DIE", "RESTARD", "KILL", "SQUIT", "CONNECT" };
-
-	for (int i = 0; i < 24; i++)
-	{
-		if (cmd == commands[i])
-		{
-			std::cout << "cmd, foud it" << std::endl;
-			return 1;
-		}
-	}
-	std::cout << "cmd not found" << std::endl;
-	return (0);
-}
-
-std::string	Response::ping(std::string args, std::string username)
-{
-	if (args.empty() == 1)
-		return (":myserver 409 " + username + "No origin specified");
-	else if (args.find(" ") != std::string::npos) //found
-	{
-		std::string arg;
-
-		for (int i = 0; (args.c_str())[i] != ' ' && args.c_str(); i++)
-		{
-			arg = arg + (args.c_str())[i];
-		}
-		std::cout << "arg" << arg << std::endl; //debug a verif la suite de la commande a ete supp;
-		return("myserv PONG server :" + arg);
-	}
-	else //not found
-	{
-		return (":myserv PONG server :" + args);
-	}
-}
-
-void	Response::interactcmd(ClientSocket *client, std::string cmd, std::string args)
-{
-	_response = " ";
-	std::cout << "test : " << cmd << " "<< isacmd(cmd) << std::endl;
-	if (!isacmd(cmd))
-	{
-		// std::cout << "test : " << isacmd(cmd) << std::endl;
-		_response = ":myserver 421 " + client->getusername() + " " + cmd + ":Unknown command\r\n";
-	}
-	if (cmd.compare("PING") == 0)
-		_response = ping(args, client->getusername());
-	// std::cout << "okay then" << std::endl;
-
+	_response += str + "\r\n";
+	pollFd->events = POLLOUT;
 }

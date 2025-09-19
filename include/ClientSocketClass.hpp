@@ -18,11 +18,19 @@ class ClientSocket : public ASocket {
 		void	sendResponse();
 		void interact();
 		void execute(std::string cmd, std::string args, Response	&response);
+		void	interactcmd(std::string cmd, std::string args, Response &response);
+		static bool	isacmd(std::string cmd);
+
+
 
 		pollfd		*_poll;
 		std::string getpwd();
 		std::string getnick();
 		std::string getusername();
+
+		int	ping(std::string args, Response&);
+		int	mode(std::string args, Response&);
+
 
 
 		private:
@@ -30,14 +38,15 @@ class ClientSocket : public ASocket {
 		socklen_t 	_len;
 		int			_listenFd;
 		bool		_unlocked;
-		bool		_key;
 		bool		_connected;
 		void _unlock(Response	&response, std::string cmd, std::string args);
+		std::map<std::string, int (ClientSocket::*)(std::string, Response&)> cmdsMap;
 		Request		_request;
 		std::string _response;
 		std::string	_pwd;
 		std::string _nick;
 		std::string	_username;
+
 
 
 };
