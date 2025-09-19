@@ -5,6 +5,7 @@ ClientSocket::ClientSocket(int listenFd, std::string pwd) : _listenFd(listenFd),
 	std::cout << "new client has been created" << std::endl;
 	cmdsMap["PING"] = &ClientSocket::ping;
 	cmdsMap["MODE"] = &ClientSocket::mode;
+	cmdsMap["USER"] = &ClientSocket::user;
 	_len = sizeof(_addr);
 }
 
@@ -45,20 +46,6 @@ void ClientSocket::_unlock(Response	&response, std::string cmd, std::string args
 	}
 }
 
-bool	ClientSocket::isacmd(std::string cmd)
-{
-	static const char* commands[] = {
-		"PING", "MODE"/*, "USER", "PASS", "JOIN", "PART", "QUIT", "PRIVMSG", "NOTICE",
-		"TOPIC", "NAMES", "LIST", "WHO", "WHOIS", "WHOWAS", "NICK", "KICK", "INVITE",
-		"OPER", "DIE", "RESTARD", "KILL", "SQUIT", "CONNECT" */ };
-
-	for (int i = 0; i < 2; i++)
-	{
-		if (cmd == commands[i])
-			return 1;
-	}
-	return (0);
-}
 
 void ClientSocket::execute(std::string cmd, std::string args, Response	&response)
 {
@@ -77,13 +64,9 @@ void ClientSocket::execute(std::string cmd, std::string args, Response	&response
 			_poll->events = POLLOUT;
 		}
 		else if(cmd.compare("NICK") == 0)
-		{
 			_nick = args;
-		}
 		else if(cmd.compare("USER") == 0)
-		{
-			_username = args;
-		}
+			(this->*cmdsMap["USER"])(args, response);
 		if(_nick.compare("") != 0 && _username.compare("") != 0 && !_connected)
 		{
 			_connected = true;
@@ -146,6 +129,36 @@ std::string	ClientSocket::getusername()
 	return(_username);
 }
 
+bool	ClientSocket::isacmd(std::string cmd)
+{
+	static const char* commands[] = {
+		"PING", "MODE", "USER"/*, "PASS", "JOIN", "PART", "QUIT", "PRIVMSG", "NOTICE",
+		"TOPIC", "NAMES", "LIST", "WHO", "WHOIS", "WHOWAS", "NICK", "KICK", "INVITE",
+		"OPER", "DIE", "RESTARD", "KILL", "SQUIT", "CONNECT" */ };
+
+	for (int i = 0; i < 2; i++)
+	{
+		if (cmd == commands[i])
+			return 1;
+	}
+	return (0);
+}
+
+std::vector<std::string> ClientSocket::split(std::string str)
+{
+	int							pos = 0;
+	std::vector<std::string>	requests;
+
+	for(size_t i = 0; i < str.size(); i++)
+	{
+		if (str[i] == ' ')
+		{
+			requests.push_back(str.substr(pos, i - pos));
+			pos = i + 1;
+		}
+	}
+	return (requests);
+}
 void	ClientSocket::interactcmd(std::string cmd, std::string args, Response &response)
 {
 	if (!isacmd(cmd))
@@ -184,4 +197,15 @@ int	ClientSocket::mode(std::string args, Response &response)
 		return (1);
 	}
 	return(1);
+}
+
+int	ClientSocket::user(std::string args, Response &response)
+{
+	(void)response;
+	std::vector<std::string> argsVec = split(args);
+	_username = argsVec[0];
+	_hostname = argsVec[1];
+	_servername = argsVec[2];
+	_realname = argsVec[3];
+	return(0);
 }

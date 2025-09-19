@@ -20,6 +20,8 @@ class ClientSocket : public ASocket {
 		void execute(std::string cmd, std::string args, Response	&response);
 		void	interactcmd(std::string cmd, std::string args, Response &response);
 		static bool	isacmd(std::string cmd);
+		std::vector<std::string> split(std::string str);
+
 
 
 
@@ -28,10 +30,9 @@ class ClientSocket : public ASocket {
 		std::string getnick();
 		std::string getusername();
 
-		int	ping(std::string args, Response&);
-		int	mode(std::string args, Response&);
-
-
+		int	ping(std::string args, Response& response);
+		int	mode(std::string args, Response& response);
+		int	user(std::string args, Response& response);
 
 		private:
 
@@ -46,6 +47,9 @@ class ClientSocket : public ASocket {
 		std::string	_pwd;
 		std::string _nick;
 		std::string	_username;
+		std::string _hostname;
+		std::string _servername;
+		std::string _realname;
 
 
 
