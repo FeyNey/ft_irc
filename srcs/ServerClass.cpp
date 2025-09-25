@@ -40,6 +40,7 @@ void	Server::_createClient()
 	_pollVec.push_back(pollNodeTmp);
 	csock->_poll = &_pollVec.back();
 	_clientSocks.push_back(csock);
+	csock->clientSocks = &_clientSocks;
 	_nbClients++;
 }
 

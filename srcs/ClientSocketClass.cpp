@@ -67,13 +67,6 @@ void ClientSocket::execute(std::string cmd, std::string args, Response	&response
 			_nick = args;
 		else if(cmd.compare("USER") == 0)
 			(this->*cmdsMap["USER"])(args, response);
-		if(_nick.compare("") != 0 && _username.compare("") != 0 && !_connected)
-		{
-			_connected = true;
-			response.makeResponse(true, _connected, _nick, cmd, args);
-			_response = response.str().c_str();
-			_poll->events = POLLOUT;
-		}
 		else if (_connected)
 		{
 			interactcmd(cmd, args, response);
@@ -81,6 +74,14 @@ void ClientSocket::execute(std::string cmd, std::string args, Response	&response
 			_poll->events = POLLOUT;
 			return ;
 		}
+		if(_nick.compare("") != 0 && _username.compare("") != 0 && !_connected)
+		{
+			_connected = true;
+			response.makeResponse(true, _connected, _nick, cmd, args);
+			_response = response.str().c_str();
+			_poll->events = POLLOUT;
+		}
+
 	}
 }
 
@@ -162,7 +163,7 @@ std::vector<std::string> ClientSocket::split(std::string str)
 void	ClientSocket::interactcmd(std::string cmd, std::string args, Response &response)
 {
 	if (!isacmd(cmd))
-		response.addResponse(":myserver 421 " + _username + " " + cmd + ":Unknown command", _poll);
+		response.addResponse(":myserver 421 " + _username + " " + cmd + " :Unknown command", _poll);
 	else
 		(this->*cmdsMap[cmd])(args, response);
 }
@@ -181,21 +182,25 @@ int	ClientSocket::ping(std::string args, Response &response)
 
 int	ClientSocket::mode(std::string args, Response &response)
 {
-	/* if (args.empty() == 1)
-		response.addResponse(":myserver 409 " + _username + "No origin specified"); */
-	if (args.find("+i")) //found
-	{
-		std::string nick = args.substr(0, args.find(" "));
-		if (nick.compare(_nick) != 0)
-			response.addResponse(":myserv 502" + nick + ":Cannot change mode for other users", _poll);
-		else
-			response.addResponse(":" + _nick + "!" + _username + "@monserv MODE " + _nick +" +i", _poll);
-	}
-	else //not found
-	{
-		response.addResponse(":myserv PONG server :" + args, _poll);
-		return (1);
-	}
+	int find = 0;
+	if (args.empty() == 1)
+		response.addResponse(":monserv 409 " + _username + ":No origin specified", _poll);
+	std::string nick = args.substr(0, args.find(" "));
+	for (size_t i = 0; i < clientSocks->size(); i++)
+		if (nick.compare((*clientSocks)[i]->getnick()) == 0)
+			find = 1;
+	if (find == 0)
+		return(response.addResponse(":monserv 401 " + _username + " " + nick + ":No such nick", _poll), 1);
+	else if (nick.compare(_nick) != 0)
+		return(response.addResponse(":monserv 502 " + _username + ":Cant change mode for other users", _poll), 1);
+	else if (nick.size() == args.size())
+		return(response.addResponse(":monserv 221 " + _username + " :+i", _poll), 1); // A CODER (RENVOYER TOUT LES MODES ACTIFS)
+	if (args.find("+i") != std::string::npos)
+		response.addResponse(":" + _nick + "!" + _username + "@monserv MODE " + _nick +" +i", _poll);
+	else if (args.find("+i") != std::string::npos)
+		response.addResponse(":" + _nick + "!" + _username + "@monserv MODE " + _nick +" +i", _poll);
+	else
+		response.addResponse(":" + _username + "@monserv MODE " + _nick +" +i", _poll);
 	return(1);
 }
 

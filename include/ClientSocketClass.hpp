@@ -15,6 +15,9 @@ class ClientSocket : public ASocket {
 		~ClientSocket();
 
 		int connect();
+		std::vector<ClientSocket*>	*clientSocks;
+		pollfd		*_poll;
+
 		void	sendResponse();
 		void interact();
 		void execute(std::string cmd, std::string args, Response	&response);
@@ -22,10 +25,6 @@ class ClientSocket : public ASocket {
 		static bool	isacmd(std::string cmd);
 		std::vector<std::string> split(std::string str);
 
-
-
-
-		pollfd		*_poll;
 		std::string getpwd();
 		std::string getnick();
 		std::string getusername();
