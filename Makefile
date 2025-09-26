@@ -12,7 +12,8 @@ LST_SRCS =	main.cpp \
 			ASocketClass.cpp \
 			ServerClass.cpp \
 			RequestClass.cpp \
-			ResponseClass.cpp
+			ResponseClass.cpp \
+			Room.cpp
 
 LST_OBJS = $(LST_SRCS:.cpp=.o)
 

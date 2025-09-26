@@ -6,6 +6,9 @@
 #include "poll.h"
 #include <vector>
 #include <cstdlib>
+#include "Room.hpp"
+
+class Room;
 
 class Server {
 
@@ -20,6 +23,10 @@ class Server {
 		static void signal_handler(int sig);
 
 		static bool signal;
+		int	isasalon(std::string arg);
+		std::vector<Room>	getSalon();
+		void	create_salon(ClientSocket *user, std::string name);
+		void	sendmsgsalon(std::string salon, std::string msg);
 
 	private :
 
@@ -32,6 +39,7 @@ class Server {
 		void						_launchListenSocket();
 		void						_createClient();
 		void						_pollLoop();
+		std::vector<Room>			_salon;
 };
 
 #endif

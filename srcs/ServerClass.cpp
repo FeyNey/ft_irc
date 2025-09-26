@@ -32,7 +32,7 @@ void	Server::launchListenSocket()
 
 void	Server::_createClient()
 {
-	ClientSocket *csock = new ClientSocket(_fdLSock, _pwd);
+	ClientSocket *csock = new ClientSocket(_fdLSock, _pwd, this);
 	pollfd	pollNodeTmp;
 	pollNodeTmp.fd = csock->connect();
 	pollNodeTmp.events = POLLIN;
@@ -63,3 +63,51 @@ void	Server::signal_handler(int sig)
 	(void)sig;
 	signal = true;
 }
+
+int	Server::isasalon(std::string arg)
+{
+	size_t i;
+
+	i = 0;
+	while (i < _salon.size())
+	{
+		if (_salon[i].getName() == arg)
+			return (1);
+		i++;
+	}
+	return (0);
+}
+
+std::vector<Room>	Server::getSalon()
+{
+	return(_salon);
+}
+
+void	Server::create_salon(ClientSocket *user, std::string name)
+{
+	Room Salon(name, user);
+
+	this->_salon.push_back(Salon);
+}
+
+void	Server::sendmsgsalon(std::string salon, std::string msg)
+{
+	size_t i;
+
+	i = 0;
+	while (i < _salon.size())
+	{
+		if (_salon[i].getName() == salon)
+		{
+			for (size_t j; j = 0; j < _salon[i].getClient().size())
+			{
+				_salon[i].getClient()[j].set_response(msg);
+				_salon[i].getClient()[j]._poll->revents = POLLOUT;
+			}
+			break;
+		}
+		i++;
+	}
+}
+
+

@@ -1,12 +1,29 @@
 #include <ClientSocketClass.hpp>
 
-ClientSocket::ClientSocket(int listenFd, std::string pwd) : _listenFd(listenFd), _unlocked(false), _connected(false), _pwd(pwd), _nick(""), _username("")
+ClientSocket::ClientSocket(int listenFd, std::string pwd, Server *serv) : _listenFd(listenFd), _unlocked(false), _connected(false), _pwd(pwd), _nick(""), _username("")
 {
 	std::cout << "new client has been created" << std::endl;
+	serv = _serv;
 	cmdsMap["PING"] = &ClientSocket::ping;
 	cmdsMap["MODE"] = &ClientSocket::mode;
 	cmdsMap["USER"] = &ClientSocket::user;
+	cmdsMap["JOIN"] = &ClientSocket::join;
+	cmdsMap["PRVMSG"] = &ClientSocket::prvmsg;
+	// cmdsMap["JOIN"] = &ClientSocket::join;
 	_len = sizeof(_addr);
+}
+
+ClientSocket::ClientSocket(ClientSocket const &cpy)
+{
+	*this = cpy;
+	std::cout << "cpy constructor called" << std::endl;
+}
+
+ClientSocket const &ClientSocket::operator=(ClientSocket const &dupp)
+{
+	std::cout << "operator = client socket called" << std::endl;
+	(void)dupp;
+	return (*this);
 }
 
 int ClientSocket::connect()
@@ -88,6 +105,7 @@ void ClientSocket::interact()
 {
 	std::string	cmd;
 	std::string	args;
+
 	_request.receive(_fd);
 	_request.show();
 	Response	response(_request);
@@ -132,7 +150,7 @@ std::string	ClientSocket::getusername()
 bool	ClientSocket::isacmd(std::string cmd)
 {
 	static const char* commands[] = {
-		"PING", "MODE", "USER"/*, "PASS", "JOIN", "PART", "QUIT", "PRIVMSG", "NOTICE",
+		"PING", "MODE", "USER", "JOIN"/*, "PASS", "PART", "QUIT", "PRIVMSG", "NOTICE",
 		"TOPIC", "NAMES", "LIST", "WHO", "WHOIS", "WHOWAS", "NICK", "KICK", "INVITE",
 		"OPER", "DIE", "RESTARD", "KILL", "SQUIT", "CONNECT" */ };
 
@@ -159,6 +177,26 @@ std::vector<std::string> ClientSocket::split(std::string str)
 	}
 	return (requests);
 }
+
+std::vector<std::string> ClientSocket::split_on_first(std::string str)
+{
+	int							pos = 0;
+	std::vector<std::string>	requests;
+
+	for(size_t i = 0; i < str.size(); i++)
+	{
+		if (str[i] == ' ')
+		{
+			requests.push_back(str.substr(pos, i - pos));
+			pos = i + 1;
+			requests.push_back(str.substr(pos, str.size()));
+			return (requests);
+		}
+	}
+	return (requests);
+}
+
+
 void	ClientSocket::interactcmd(std::string cmd, std::string args, Response &response)
 {
 	if (!isacmd(cmd))
@@ -208,4 +246,57 @@ int	ClientSocket::user(std::string args, Response &response)
 	_servername = argsVec[2];
 	_realname = argsVec[3];
 	return(0);
+}
+
+int	ClientSocket::join(std::string args, Response &response)
+{
+	int i;
+
+	i = 0;
+	if (args[0] != '#' || args[0] != '&')
+	{
+		response.addResponse("invalid name of salon", _poll);
+	}
+	else if (_serv->isasalon(args))
+	{
+		while (_serv->getSalon()[i].getName() != args)
+			i++;
+		_serv->getSalon()[i].getClient().push_back(*this); //verif comportement //adduser au salon
+	}
+	else
+	{
+		_serv->create_salon(this, args);
+	}
+	return (0);
+}
+
+int	ClientSocket::prvmsg(std::string args, Response &response)
+{
+	std::vector<std::string> tab;
+
+	if (args[0] == '#' || args[0] == '&')
+	{
+		tab = split_on_first(args);
+		// if (!_serv->isasalon(tab[0]))
+			// _response += "server: uncknow channel";
+		if (_serv->isasalon(tab[0]))
+			_serv->sendmsgsalon(tab[0], tab[1]);
+	}
+
+}
+
+/* int	ClientSocket::ft_find(std::string str, char c)
+{
+	for(int i = 0; str[i] != '\0'; i++)
+	{
+		if (str[i] == c)
+			return (i);
+	}
+	return (0);
+} */
+
+
+void ClientSocket::set_response(std::string response)
+{
+	_response += response;
 }

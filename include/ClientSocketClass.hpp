@@ -7,32 +7,41 @@
 #include "poll.h"
 #include <fstream>
 #include <sstream>
+#include "ServerClass.hpp" // ?
+// #include <Room.hpp>
+
+class Server;
 
 class ClientSocket : public ASocket {
 
 	public:
-		ClientSocket(int listenFd, std::string pwd);
+		ClientSocket(int listenFd, std::string pwd, Server *serv);
+		ClientSocket(ClientSocket const &cpy);
 		~ClientSocket();
+		ClientSocket const &operator=(ClientSocket const &dupp);
 
-		int connect();
+		int		connect();
 		void	sendResponse();
-		void interact();
-		void execute(std::string cmd, std::string args, Response	&response);
+		void	interact();
+		void	execute(std::string cmd, std::string args, Response	&response);
 		void	interactcmd(std::string cmd, std::string args, Response &response);
 		static bool	isacmd(std::string cmd);
 		std::vector<std::string> split(std::string str);
+		std::vector<std::string> ClientSocket::split_on_first(std::string str);
 
 
-
-
+		void set_response(std::string response);
 		pollfd		*_poll;
 		std::string getpwd();
 		std::string getnick();
 		std::string getusername();
+		int ft_find(std::string str, char c);
 
 		int	ping(std::string args, Response& response);
 		int	mode(std::string args, Response& response);
 		int	user(std::string args, Response& response);
+		int join(std::string args, Response &response);
+		int prvmsg(std::string args, Response &response);
 
 		private:
 
@@ -50,7 +59,7 @@ class ClientSocket : public ASocket {
 		std::string _hostname;
 		std::string _servername;
 		std::string _realname;
-
+		Server			*_serv;
 
 
 };

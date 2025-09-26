@@ -25,6 +25,7 @@ class Response {
 		Response();
 		Request _request;
 		std::string _response;
+		
 
 };
 
