@@ -57,8 +57,8 @@ Response::~Response()
 }
 
 
-void Response::addResponse(std::string str, pollfd *pollFd)
+int Response::addResponse(std::string str)
 {
 	_response += str + "\r\n";
-	pollFd->events = POLLOUT;
+	return (POLLOUT);
 }

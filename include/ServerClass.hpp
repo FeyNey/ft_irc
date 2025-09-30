@@ -3,6 +3,7 @@
 
 #include "ClientSocketClass.hpp"
 #include "ListenSocketClass.hpp"
+#include "RoomClass.hpp"
 #include "poll.h"
 #include <vector>
 #include <cstdlib>
@@ -25,6 +26,8 @@ class Server {
 
 		ListenSocket				_listenSock;
 		std::vector<ClientSocket*>	_clientSocks;
+		std::vector<Room*>			_rooms;
+		std::vector<std::string>	roomNames;
 		std::vector<pollfd>			_pollVec;
 		std::string					_pwd;
 		size_t						_nbClients;

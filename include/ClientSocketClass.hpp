@@ -8,22 +8,26 @@
 #include <fstream>
 #include <sstream>
 
+class Room;
+
 class ClientSocket : public ASocket {
 
 	public:
-		ClientSocket(int listenFd, std::string pwd);
+		ClientSocket(int listenFd, std::string pwd, std::vector<Room*> *rooms);
 		~ClientSocket();
 
-		int connect();
+		int 						connect();
 		std::vector<ClientSocket*>	*clientSocks;
-		pollfd		*_poll;
+		std::vector<pollfd>			*pollVec;
+		size_t						pollIndex;
 
-		void	sendResponse();
-		void interact();
-		void execute(std::string cmd, std::string args, Response	&response);
-		void	interactcmd(std::string cmd, std::string args, Response &response);
-		static bool	isacmd(std::string cmd);
-		std::vector<std::string> split(std::string str);
+		void						sendResponse();
+		void						addResponse(std::string);
+		void						interact();
+		void						execute(std::string cmd, std::string args, Response	&response);
+		void						interactcmd(std::string cmd, std::string args, Response &response);
+		static bool					isacmd(std::string cmd);
+		std::vector<std::string>	split(std::string str);
 
 		std::string getpwd();
 		std::string getnick();
@@ -32,6 +36,7 @@ class ClientSocket : public ASocket {
 		int	ping(std::string args, Response& response);
 		int	mode(std::string args, Response& response);
 		int	user(std::string args, Response& response);
+		int	join(std::string args, Response &response);
 
 		private:
 
@@ -39,7 +44,8 @@ class ClientSocket : public ASocket {
 		int			_listenFd;
 		bool		_unlocked;
 		bool		_connected;
-		void _unlock(Response	&response, std::string cmd, std::string args);
+		void		_unlock(Response	&response, std::string cmd, std::string args);
+		int			_isRoom(std::string roomName);
 		std::map<std::string, int (ClientSocket::*)(std::string, Response&)> cmdsMap;
 		Request		_request;
 		std::string _response;
@@ -49,6 +55,7 @@ class ClientSocket : public ASocket {
 		std::string _hostname;
 		std::string _servername;
 		std::string _realname;
+		std::vector<Room*> *_rooms;
 
 
 

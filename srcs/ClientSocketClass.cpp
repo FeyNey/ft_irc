@@ -1,11 +1,13 @@
 #include <ClientSocketClass.hpp>
+#include "RoomClass.hpp"
 
-ClientSocket::ClientSocket(int listenFd, std::string pwd) : _listenFd(listenFd), _unlocked(false), _connected(false), _pwd(pwd), _nick(""), _username("")
+ClientSocket::ClientSocket(int listenFd, std::string pwd, std::vector<Room*> *rooms) : _listenFd(listenFd), _unlocked(false), _connected(false), _response(""), _pwd(pwd), _nick(""), _username(""), _rooms(rooms)
 {
 	std::cout << "new client has been created" << std::endl;
 	cmdsMap["PING"] = &ClientSocket::ping;
 	cmdsMap["MODE"] = &ClientSocket::mode;
 	cmdsMap["USER"] = &ClientSocket::user;
+	cmdsMap["JOIN"] = &ClientSocket::join;
 	_len = sizeof(_addr);
 }
 
@@ -23,7 +25,7 @@ void ClientSocket::_unlock(Response	&response, std::string cmd, std::string args
 	if(cmd.compare("CAP") == 0)
 	{
 		response.makeResponse(_unlocked, false, "", cmd, args);
-		_poll->events = POLLOUT;
+		(*pollVec)[pollIndex].events = POLLOUT;
 
 		return;
 	}
@@ -36,13 +38,13 @@ void ClientSocket::_unlock(Response	&response, std::string cmd, std::string args
 		else
 		{
 			response.makeResponse(_unlocked, false, "", cmd, args);
-			_poll->events = POLLOUT;
+			(*pollVec)[pollIndex].events = POLLOUT;
 		}
 	}
 	else
 	{
 		response.makeResponse(_unlocked, false, "", cmd, args);
-		_poll->events = POLLOUT;
+		(*pollVec)[pollIndex].events = POLLOUT;
 	}
 }
 
@@ -52,16 +54,16 @@ void ClientSocket::execute(std::string cmd, std::string args, Response	&response
 	if (_unlocked == false)
 	{
 		_unlock(response, cmd, args);
-		_response = response.str().c_str();
-		_poll->events = POLLOUT;
+		_response += response.str().c_str();
+		(*pollVec)[pollIndex].events = POLLOUT;
 	}
 	else
 	{
 		if(cmd.compare("CAP") == 0)
 		{
 			response.makeResponse(true, _connected, _nick, cmd, args);
-			_response = response.str().c_str();
-			_poll->events = POLLOUT;
+			_response += response.str().c_str();
+			(*pollVec)[pollIndex].events = POLLOUT;
 		}
 		else if(cmd.compare("NICK") == 0)
 			_nick = args;
@@ -70,16 +72,16 @@ void ClientSocket::execute(std::string cmd, std::string args, Response	&response
 		else if (_connected)
 		{
 			interactcmd(cmd, args, response);
-			_response = response.str();
-			_poll->events = POLLOUT;
+			_response += response.str();
+			(*pollVec)[pollIndex].events = POLLOUT;
 			return ;
 		}
 		if(_nick.compare("") != 0 && _username.compare("") != 0 && !_connected)
 		{
 			_connected = true;
 			response.makeResponse(true, _connected, _nick, cmd, args);
-			_response = response.str().c_str();
-			_poll->events = POLLOUT;
+			_response += response.str().c_str();
+			(*pollVec)[pollIndex].events = POLLOUT;
 		}
 
 	}
@@ -107,7 +109,8 @@ void	ClientSocket::sendResponse()
 		send(_fd, _response.c_str(), _response.size(), 0);
 		std::cout << "Reponse : " << _response << std::endl;
 	}
-	_poll->events = POLLIN;
+	(*pollVec)[pollIndex].events = POLLIN;
+	_response.clear();
 	_request.clear();
 }
 
@@ -133,11 +136,11 @@ std::string	ClientSocket::getusername()
 bool	ClientSocket::isacmd(std::string cmd)
 {
 	static const char* commands[] = {
-		"PING", "MODE", "USER"/*, "PASS", "JOIN", "PART", "QUIT", "PRIVMSG", "NOTICE",
+		"PING", "MODE", "USER", "JOIN"/*, "PASS", "PART", "QUIT", "PRIVMSG", "NOTICE",
 		"TOPIC", "NAMES", "LIST", "WHO", "WHOIS", "WHOWAS", "NICK", "KICK", "INVITE",
 		"OPER", "DIE", "RESTARD", "KILL", "SQUIT", "CONNECT" */ };
 
-	for (int i = 0; i < 2; i++)
+	for (int i = 0; i < 4; i++)
 	{
 		if (cmd == commands[i])
 			return 1;
@@ -163,7 +166,7 @@ std::vector<std::string> ClientSocket::split(std::string str)
 void	ClientSocket::interactcmd(std::string cmd, std::string args, Response &response)
 {
 	if (!isacmd(cmd))
-		response.addResponse(":myserver 421 " + _username + " " + cmd + " :Unknown command", _poll);
+		(*pollVec)[pollIndex].events = response.addResponse(":myserver 421 " + _username + " " + cmd + " :Unknown command");
 	else
 		(this->*cmdsMap[cmd])(args, response);
 }
@@ -171,10 +174,10 @@ void	ClientSocket::interactcmd(std::string cmd, std::string args, Response &resp
 int	ClientSocket::ping(std::string args, Response &response)
 {
 	if (args.empty() == 1)
-		response.addResponse(":myserver 409 " + _username + "No origin specified", _poll);
+		(*pollVec)[pollIndex].events = response.addResponse(":myserver 409 " + _username + "No origin specified");
 	else //not found
 	{
-		response.addResponse(":monserv PONG monserv :" + args, _poll);
+		(*pollVec)[pollIndex].events = response.addResponse(":monserv PONG monserv :" + args);
 		return (1);
 	}
 	return(1);
@@ -184,23 +187,23 @@ int	ClientSocket::mode(std::string args, Response &response)
 {
 	int find = 0;
 	if (args.empty() == 1)
-		response.addResponse(":monserv 409 " + _username + ":No origin specified", _poll);
+		(*pollVec)[pollIndex].events = response.addResponse(":monserv 409 " + _username + ":No origin specified");
 	std::string nick = args.substr(0, args.find(" "));
 	for (size_t i = 0; i < clientSocks->size(); i++)
 		if (nick.compare((*clientSocks)[i]->getnick()) == 0)
 			find = 1;
 	if (find == 0)
-		return(response.addResponse(":monserv 401 " + _username + " " + nick + ":No such nick", _poll), 1);
+		return((*pollVec)[pollIndex].events = response.addResponse(":monserv 401 " + _username + " " + nick + ":No such nick"), 1);
 	else if (nick.compare(_nick) != 0)
-		return(response.addResponse(":monserv 502 " + _username + ":Cant change mode for other users", _poll), 1);
+		return((*pollVec)[pollIndex].events = response.addResponse(":monserv 502 " + _username + ":Cant change mode for other users"), 1);
 	else if (nick.size() == args.size())
-		return(response.addResponse(":monserv 221 " + _username + " :+i", _poll), 1); // A CODER (RENVOYER TOUT LES MODES ACTIFS)
+		return((*pollVec)[pollIndex].events = response.addResponse(":monserv 221 " + _username + " :+i"), 1); // A CODER (RENVOYER TOUT LES MODES ACTIFS)
 	if (args.find("+i") != std::string::npos)
-		response.addResponse(":" + _nick + "!" + _username + "@monserv MODE " + _nick +" +i", _poll);
+		(*pollVec)[pollIndex].events = response.addResponse(":" + _nick + "!" + _username + "@monserv MODE " + _nick +" +i");
 	else if (args.find("+i") != std::string::npos)
-		response.addResponse(":" + _nick + "!" + _username + "@monserv MODE " + _nick +" +i", _poll);
+		(*pollVec)[pollIndex].events = response.addResponse(":" + _nick + "!" + _username + "@monserv MODE " + _nick +" +i");
 	else
-		response.addResponse(":" + _username + "@monserv MODE " + _nick +" +i", _poll);
+		(*pollVec)[pollIndex].events = response.addResponse(":" + _username + "@monserv MODE " + _nick +" +i");
 	return(1);
 }
 
@@ -213,4 +216,36 @@ int	ClientSocket::user(std::string args, Response &response)
 	_servername = argsVec[2];
 	_realname = argsVec[3];
 	return(0);
+}
+
+int ClientSocket::_isRoom(std::string roomName)
+{
+	for (size_t i = 0; i < _rooms->size(); i++)
+	{
+		if ((*_rooms)[i]->getName() == roomName)
+			return(1);
+	}
+	return(0);
+}
+
+int	ClientSocket::join(std::string args, Response &response)
+{
+	(void) response;
+	std::string roomName;
+	if(args[0] != '#')
+		return(_response += ":monserv : erreur a coder", 1);
+	roomName = args.substr(1, args.size() - 1);
+	for (size_t i = 0; i < (*_rooms).size(); i++)
+	{
+		if ((*_rooms)[i]->getName() == roomName)
+			return((*_rooms)[i]->join(this), 0);
+	}
+	(*_rooms).push_back(new Room(roomName, this));
+	return(0);
+}
+
+void ClientSocket::addResponse(std::string response)
+{
+	_response += response + "\r\n";
+	(*pollVec)[pollIndex].events = POLLOUT;
 }

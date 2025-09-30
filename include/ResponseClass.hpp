@@ -18,7 +18,7 @@ class Response {
 		std::string str();
 		size_t size();
 		void makeResponse(bool unlocked, bool connected, std::string user, std::string cmd, std::string args);
-		void addResponse(std::string str, pollfd *pollFd);
+		int addResponse(std::string str);
 		void clear();
 
 	private :

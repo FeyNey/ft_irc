@@ -8,6 +8,7 @@ OBJS_DIR = .objs
 
 LST_SRCS =	main.cpp \
 			ListenSocketClass.cpp \
+			RoomClass.cpp \
 			ClientSocketClass.cpp \
 			ASocketClass.cpp \
 			ServerClass.cpp \

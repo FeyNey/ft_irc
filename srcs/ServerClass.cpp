@@ -32,13 +32,14 @@ void	Server::launchListenSocket()
 
 void	Server::_createClient()
 {
-	ClientSocket *csock = new ClientSocket(_fdLSock, _pwd);
+	ClientSocket *csock = new ClientSocket(_fdLSock, _pwd, &_rooms);
 	pollfd	pollNodeTmp;
 	pollNodeTmp.fd = csock->connect();
 	pollNodeTmp.events = POLLIN;
 	pollNodeTmp.revents = 0;
 	_pollVec.push_back(pollNodeTmp);
-	csock->_poll = &_pollVec.back();
+	csock->pollIndex = _pollVec.size() - 1;
+	csock->pollVec = &_pollVec;
 	_clientSocks.push_back(csock);
 	csock->clientSocks = &_clientSocks;
 	_nbClients++;
