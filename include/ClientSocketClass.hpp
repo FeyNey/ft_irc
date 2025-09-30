@@ -37,6 +37,7 @@ class ClientSocket : public ASocket {
 		int	mode(std::string args, Response& response);
 		int	user(std::string args, Response& response);
 		int	join(std::string args, Response &response);
+		int	privmsg(std::string args, Response &response);
 
 		private:
 
@@ -56,6 +57,8 @@ class ClientSocket : public ASocket {
 		std::string _servername;
 		std::string _realname;
 		std::vector<Room*> *_rooms;
+		std::vector<std::string> _roomsNames;
+
 
 
 

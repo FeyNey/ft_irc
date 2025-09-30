@@ -8,6 +8,7 @@ ClientSocket::ClientSocket(int listenFd, std::string pwd, std::vector<Room*> *ro
 	cmdsMap["MODE"] = &ClientSocket::mode;
 	cmdsMap["USER"] = &ClientSocket::user;
 	cmdsMap["JOIN"] = &ClientSocket::join;
+	cmdsMap["PRIVMSG"] = &ClientSocket::privmsg;
 	_len = sizeof(_addr);
 }
 
@@ -136,11 +137,11 @@ std::string	ClientSocket::getusername()
 bool	ClientSocket::isacmd(std::string cmd)
 {
 	static const char* commands[] = {
-		"PING", "MODE", "USER", "JOIN"/*, "PASS", "PART", "QUIT", "PRIVMSG", "NOTICE",
+		"PING", "MODE", "USER", "JOIN", "PRIVMSG"/*, "PART", "QUIT", "PASS", "NOTICE",
 		"TOPIC", "NAMES", "LIST", "WHO", "WHOIS", "WHOWAS", "NICK", "KICK", "INVITE",
 		"OPER", "DIE", "RESTARD", "KILL", "SQUIT", "CONNECT" */ };
 
-	for (int i = 0; i < 4; i++)
+	for (int i = 0; i < 5; i++)
 	{
 		if (cmd == commands[i])
 			return 1;
@@ -231,17 +232,47 @@ int ClientSocket::_isRoom(std::string roomName)
 int	ClientSocket::join(std::string args, Response &response)
 {
 	(void) response;
-	std::string roomName;
 	if(args[0] != '#')
 		return(_response += ":monserv : erreur a coder", 1);
+
+	std::string roomName;
 	roomName = args.substr(1, args.size() - 1);
+	_roomsNames.push_back(roomName);
 	for (size_t i = 0; i < (*_rooms).size(); i++)
 	{
 		if ((*_rooms)[i]->getName() == roomName)
-			return((*_rooms)[i]->join(this), 0);
+		{
+			(*_rooms)[i]->join(this);
+			return (0);
+		}
 	}
 	(*_rooms).push_back(new Room(roomName, this));
 	return(0);
+}
+
+int	ClientSocket::privmsg(std::string args, Response &response)
+{
+	(void)response;
+	std::string msg;
+	if(args[0] == '#')
+	{
+		std::string roomName;
+		roomName = args.substr(1, args.find(' ') - 1);
+		std::cout << roomName << std::endl;
+		for (size_t i = 0; i < _roomsNames.size(); i++)
+		{
+			if (roomName == _roomsNames[i])
+			{
+				for (size_t j = 0; j < (*_rooms).size(); j++)
+				{
+					if ((*_rooms)[j]->getName() == roomName)
+						(*_rooms)[j]->sendMsg(args.substr(args.find(":"), args.size() - args.find(":")), this);
+				}
+			}
+		}
+	}
+	return (0);
+
 }
 
 void ClientSocket::addResponse(std::string response)

@@ -27,6 +27,7 @@ int	Room::sendMsg(std::string msg, ClientSocket* sender)
 	+ "@monserv PRIVMSG #" + _name + " :" + msg;
 	for (size_t i = 0; i < _clientSocks.size(); i++)
 	{
+		if (_clientSocks[i] != sender)
 		_clientSocks[i]->addResponse(response);
 	}
 	return (1);
