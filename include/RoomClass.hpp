@@ -11,14 +11,17 @@ class Room {
 
 		int	join(ClientSocket* clientSock);
 		int	sendMsg(std::string msg, ClientSocket* sender);
+
+
 		std::string	getName();
 
-	private:
+		private:
 		std::vector<ClientSocket*>	_clientSocks;
 		std::vector<std::string>	_opsNick;
 		std::string _name;
 		std::string _topic;
 
+		bool	_isOp(std::string nick);
 };
 
 #endif

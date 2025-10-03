@@ -247,6 +247,7 @@ int	ClientSocket::join(std::string args, Response &response)
 		}
 	}
 	(*_rooms).push_back(new Room(roomName, this));
+	addResponse(":monserv MODE #" + roomName + " +o " + _nick);
 	return(0);
 }
 
