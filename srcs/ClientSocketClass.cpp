@@ -1,7 +1,7 @@
 #include <ClientSocketClass.hpp>
 #include "RoomClass.hpp"
 
-ClientSocket::ClientSocket(int listenFd, std::string pwd, std::vector<Room*> *rooms) : _listenFd(listenFd), _unlocked(false), _connected(false), _response(""), _pwd(pwd), _nick(""), _username(""), _rooms(rooms)
+ClientSocket::ClientSocket(int listenFd, std::string pwd, std::vector<Room*> *rooms) : _listenFd(listenFd), _unlocked(false), _connected(false), _nbRooms(0), _maxNbRooms(2),_response(""), _pwd(pwd), _nick(""), _username(""), _rooms(rooms)
 {
 	std::cout << "new client has been created" << std::endl;
 	cmdsMap["PING"] = &ClientSocket::ping;
@@ -229,15 +229,24 @@ int ClientSocket::_isRoom(std::string roomName)
 	return(0);
 }
 
+void	ClientSocket::addRoom(std::string roomName)
+{
+	_roomsNames.push_back(roomName);
+	_nbRooms++;
+}
+
 int	ClientSocket::join(std::string args, Response &response)
 {
 	(void) response;
-	if(args[0] != '#')
-		return(_response += ":monserv : erreur a coder", 1);
-
 	std::string roomName;
+
+	if (args.empty())
+		return(_response += ":monserv 461 " + _nick + " JOIN " + ":Not enough parameters\r\n", 1);
+	else if(args[0] != '#')
+		return(_response += ":monserv 403 " + _nick + " " + args + " :No such chanel\r\n", 1);
 	roomName = args.substr(1, args.size() - 1);
-	_roomsNames.push_back(roomName);
+	if (_nbRooms == _maxNbRooms)
+		return(_response += ":monserv 405 " + _nick + " #" + roomName + " :You have joined too many channels\r\n", 1);
 	for (size_t i = 0; i < (*_rooms).size(); i++)
 	{
 		if ((*_rooms)[i]->getName() == roomName)

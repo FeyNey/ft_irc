@@ -23,6 +23,7 @@ class ClientSocket : public ASocket {
 
 		void						sendResponse();
 		void						addResponse(std::string);
+		void							addRoom(std::string roomName);
 		void						interact();
 		void						execute(std::string cmd, std::string args, Response	&response);
 		void						interactcmd(std::string cmd, std::string args, Response &response);
@@ -47,6 +48,8 @@ class ClientSocket : public ASocket {
 		bool		_connected;
 		void		_unlock(Response	&response, std::string cmd, std::string args);
 		int			_isRoom(std::string roomName);
+		size_t			_nbRooms;
+		const size_t	_maxNbRooms;
 		std::map<std::string, int (ClientSocket::*)(std::string, Response&)> cmdsMap;
 		Request		_request;
 		std::string _response;

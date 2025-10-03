@@ -1,6 +1,6 @@
 #include "RoomClass.hpp"
 
-Room::Room(std::string name, ClientSocket* clientSock) : _name(name), _topic("")
+Room::Room(std::string name, ClientSocket* clientSock) : _name(name), _topic(""), _maxUser(UINT_MAX), _nbUser(0), _iMode(false)
 {
 	_opsNick.push_back(clientSock->getnick());
 	join(clientSock);
@@ -15,15 +15,30 @@ bool	Room::_isOp(std::string nick)
 	return (false);
 }
 
+bool	Room::_isInvited(std::string nick)
+{
+	for (size_t i = 0; i < _inviteNick.size(); i++)
+		if(nick.compare(_inviteNick[i]) == 0)
+			return (true);
+	return (false);
+}
+
 
 int	Room::join(ClientSocket* clientSock)
 {
 	std::string response;
 	std::string nameList;
 
+	if(_nbUser + 1 == _maxUser)
+		return(	clientSock->addResponse(":monserv 471 " + clientSock->getnick() + "#" + _name + " :Cannot join channel (+l)" ), 1);
+	else if(_iMode)
+		if (!_isInvited(clientSock->getnick()))
+			return(	clientSock->addResponse(":monserv 473 " + clientSock->getnick() + "#" + _name + " :Cannot join channel (+i)" ), 1);
 	response = ":" + clientSock->getnick() + "!" + clientSock->getusername()
 	+ "@monserv JOIN :#" + _name;
 	_clientSocks.push_back(clientSock);
+	clientSock->addRoom(_name);
+	_nbUser++;
 	for (size_t i = 0; i < _clientSocks.size(); i++)
 		_clientSocks[i]->addResponse(response);
 	if(!_topic.empty())
@@ -37,7 +52,7 @@ int	Room::join(ClientSocket* clientSock)
 			nameList += " ";
 	}
 	clientSock->addResponse(":monserv 353 " + clientSock->getnick() + " = #" + _name + " :" + nameList);
-	clientSock->addResponse(":monserv 366 " + clientSock->getnick() + ":End of /NAMES list");
+	clientSock->addResponse(":monserv 366 " + clientSock->getnick() + " #" + _name + " :End of /NAMES list");
 	return (0);
 }
 
