@@ -1,6 +1,6 @@
 #include "RoomClass.hpp"
 
-Room::Room(std::string name, ClientSocket* clientSock) : _name(name), _topic(""), _pwd("moddepasse"), _maxUser(UINT_MAX), _nbUser(0), _iMode(false), _kMode(true)
+Room::Room(std::string name, ClientSocket* clientSock) : _name(name), _topic(""), _pwd(""), _maxUser(UINT_MAX), _nbUser(0), _iMode(false), _kMode(false)
 {
 	_opsNick.push_back(clientSock->getnick());
 	join(clientSock, "x");
