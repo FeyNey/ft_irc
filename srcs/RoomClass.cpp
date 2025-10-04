@@ -1,9 +1,9 @@
 #include "RoomClass.hpp"
 
-Room::Room(std::string name, ClientSocket* clientSock) : _name(name), _topic(""), _maxUser(UINT_MAX), _nbUser(0), _iMode(false)
+Room::Room(std::string name, ClientSocket* clientSock) : _name(name), _topic(""), _pwd("moddepasse"), _maxUser(UINT_MAX), _nbUser(0), _iMode(false), _kMode(true)
 {
 	_opsNick.push_back(clientSock->getnick());
-	join(clientSock);
+	join(clientSock, "x");
 	std::cout << "Room #" << name << " created" << std::endl;
 }
 
@@ -24,11 +24,14 @@ bool	Room::_isInvited(std::string nick)
 }
 
 
-int	Room::join(ClientSocket* clientSock)
+int	Room::join(ClientSocket* clientSock, std::string pwd)
 {
 	std::string response;
 	std::string nameList;
 
+	std::cout << _name << "|" << _pwd << "|" << pwd << "|" << _kMode << std::endl;
+	if (_kMode && _nbUser > 0 && pwd.compare(_pwd) != 0)
+		return(	clientSock->addResponse(":monserv 475 " + clientSock->getnick() + " #" + _name + " :Cannot join channel (+k)" ), 1);
 	if(_nbUser + 1 == _maxUser)
 		return(	clientSock->addResponse(":monserv 471 " + clientSock->getnick() + "#" + _name + " :Cannot join channel (+l)" ), 1);
 	else if(_iMode)

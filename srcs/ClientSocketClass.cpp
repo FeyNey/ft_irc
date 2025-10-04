@@ -235,28 +235,86 @@ void	ClientSocket::addRoom(std::string roomName)
 	_nbRooms++;
 }
 
+std::vector< std::pair<std::string, std::string> >	ClientSocket::_parseJoinArgs(std::string args)
+{
+	size_t i = 0;
+	std::vector< std::pair<std::string, std::string> > argsVec;
+	while (args.find(',', i) != std::string::npos && args.find(',', i) < args.find(' ', i))
+	{
+		std::pair<std::string, std::string> pair;
+		pair.first = args.substr(i + 1, args.find(',', i) - i - 1);
+		argsVec.push_back(pair);
+		i = args.find(',', i) + 1;
+	}
+
+	std::pair<std::string, std::string> pair;
+
+	if (args.find(' ', i) == std::string::npos)
+	{
+		pair.first = args.substr(i + 1, args.size() - i);
+		argsVec.push_back(pair);
+		for(size_t l = 0; l < argsVec.size(); l++)
+			argsVec[l].second = 'x';
+		return(argsVec);
+	}
+	else
+	{
+		pair.first = args.substr(i + 1, args.find(' ', i) - i - 1);
+		argsVec.push_back(pair);
+		i = args.find(' ', i) + 1;
+	}
+	size_t j = 0;
+	while(args.find(',', i) != std::string::npos)
+	{
+		argsVec[j].second = args.substr(i, args.find(',', i) - i);
+		j++;
+		i = args.find(',', i) + 1;
+	}
+	argsVec[j].second = args.substr(i, args.size() - i);
+	return (argsVec);
+}
+
 int	ClientSocket::join(std::string args, Response &response)
 {
 	(void) response;
+	bool	isCreated = false;
 	std::string roomName;
-
-	if (args.empty())
-		return(_response += ":monserv 461 " + _nick + " JOIN " + ":Not enough parameters\r\n", 1);
-	else if(args[0] != '#')
-		return(_response += ":monserv 403 " + _nick + " " + args + " :No such chanel\r\n", 1);
-	roomName = args.substr(1, args.size() - 1);
-	if (_nbRooms == _maxNbRooms)
-		return(_response += ":monserv 405 " + _nick + " #" + roomName + " :You have joined too many channels\r\n", 1);
-	for (size_t i = 0; i < (*_rooms).size(); i++)
+	std::vector< std::pair<std::string, std::string> > argsVec;
+	argsVec = _parseJoinArgs(args);
+	for(size_t k = 0; k < argsVec.size(); k++)
+		std::cout << "First :" << argsVec[k].first << "Second :" << argsVec[k].second << std::endl;
+	for(size_t i = 0; i < argsVec.size(); i++)
 	{
-		if ((*_rooms)[i]->getName() == roomName)
+		roomName = argsVec[i].first;
+		if (roomName.empty())
 		{
-			(*_rooms)[i]->join(this);
-			return (0);
+			addResponse(":monserv 461 " + _nick + " JOIN " + ":Not enough parameters");
+			continue;
+		}
+		/* else if(roomName[0] != '#')
+		{
+			addResponse(":monserv 403 " + _nick + " " + roomName + " :No such chanel");
+			continue;
+		} */
+		else if (_nbRooms == _maxNbRooms)
+		{
+			addResponse(":monserv 405 " + _nick + " #" + roomName + " :You have joined too many channels\r\n");
+			continue;
+		}
+		for (size_t j = 0; j < (*_rooms).size(); j++)
+		{
+			if ((*_rooms)[j]->getName() == roomName)
+			{
+				(*_rooms)[j]->join(this, argsVec[i].second);
+				isCreated = true;
+			}
+		}
+		if (!isCreated)
+		{(
+			*_rooms).push_back(new Room(roomName, this));
+			addResponse(":monserv MODE #" + roomName + " +o " + _nick);
 		}
 	}
-	(*_rooms).push_back(new Room(roomName, this));
-	addResponse(":monserv MODE #" + roomName + " +o " + _nick);
 	return(0);
 }
 
