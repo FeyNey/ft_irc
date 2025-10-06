@@ -1,7 +1,7 @@
 #include <ClientSocketClass.hpp>
 #include "RoomClass.hpp"
 
-ClientSocket::ClientSocket(int listenFd, std::string pwd, std::vector<Room*> *rooms) : _listenFd(listenFd), _unlocked(false), _connected(false), _nbRooms(0), _maxNbRooms(2),_response(""), _pwd(pwd), _nick(""), _username(""), _rooms(rooms)
+ClientSocket::ClientSocket(int listenFd, std::string pwd, std::vector<Room*> *rooms) : _listenFd(listenFd), _unlocked(false), _connected(false), _nbRooms(0), _maxNbRooms(10),_response(""), _pwd(pwd), _nick(""), _username(""), _rooms(rooms)
 {
 	std::cout << "new client has been created" << std::endl;
 	cmdsMap["PING"] = &ClientSocket::ping;
@@ -152,9 +152,10 @@ bool	ClientSocket::isacmd(std::string cmd)
 std::vector<std::string> ClientSocket::split(std::string str)
 {
 	int							pos = 0;
+	size_t 						i = 0;
 	std::vector<std::string>	requests;
 
-	for(size_t i = 0; i < str.size(); i++)
+	for(i = 0; i < str.size(); i++)
 	{
 		if (str[i] == ' ')
 		{
@@ -162,6 +163,9 @@ std::vector<std::string> ClientSocket::split(std::string str)
 			pos = i + 1;
 		}
 	}
+	if (!str[i])
+		requests.push_back(str.substr(pos, i - pos));
+
 	return (requests);
 }
 void	ClientSocket::interactcmd(std::string cmd, std::string args, Response &response)
@@ -184,27 +188,94 @@ int	ClientSocket::ping(std::string args, Response &response)
 	return(1);
 }
 
+void	ClientSocket::_interactMode(std::string roomName, std::string modes, std::string modesArgs)
+{
+	Room						*room;
+	std::vector<std::string>	argsVec;
+	std::string					modesChange;
+	std::string					argsModesChange;
+	std::string					lastArg;
+	char						op;
+
+	if(!modesArgs.empty())
+		argsVec = split(modesArgs);
+	for (size_t i = 0; i < _rooms->size(); i++)
+	{
+		if ((*_rooms)[i]->getName() == roomName)
+			room = (*_rooms)[i];
+	}
+	for (size_t i = 0; i < modes.size(); i++)
+	{
+		if(i == 0 && modes[i] != '-' && modes[i] != '+')
+			return(addResponse(":monserv 472 " + _nick + " " + modes[i] + " :is unknown mode char to me"));
+		else if(modes[i] == '+' || modes[i] == '-')
+		{
+			op = modes[i];
+		}
+		else if(((modes[i] == 'k' || modes[i] == 'o' || modes[i] == 'l') && op == '+') || (modes[i] == 'o' && op == '-'))
+		{
+			if(argsVec.empty())
+			{
+				room->sendModesChange(modesChange, modesArgs, this);
+				addResponse(":monserv 472 " + _nick + " " + modes[0] + " :is unknown mode char to me");
+				return;
+			}
+			else
+			{
+				lastArg = getAndDel(argsVec);
+				argsModesChange += lastArg;
+				if(!argsVec.empty())
+					argsModesChange += " ";
+			}
+		}
+		if (modes[i] == 'k' && op == '+')
+			room->k(lastArg, op);
+		else if (modes[i] == 'i')
+			room->i(op);
+		else if (modes[i] == 't')
+			room->t(op);
+		else if (modes[i] == 'o')
+			room->o(lastArg, op);
+		else if (modes[i] == 'l')
+			room->l(lastArg, op);
+		modesChange += modes[i];
+	}
+	room->sendModesChange(modesChange, modesArgs, this);
+}
+
 int	ClientSocket::mode(std::string args, Response &response)
 {
-	int find = 0;
+	(void)		response;
+	std::string	roomName;
+	std::string	modes;
+	std::string	modesArgs;
+
 	if (args.empty() == 1)
-		(*pollVec)[pollIndex].events = response.addResponse(":monserv 409 " + _username + ":No origin specified");
-	std::string nick = args.substr(0, args.find(" "));
-	for (size_t i = 0; i < clientSocks->size(); i++)
-		if (nick.compare((*clientSocks)[i]->getnick()) == 0)
-			find = 1;
-	if (find == 0)
-		return((*pollVec)[pollIndex].events = response.addResponse(":monserv 401 " + _username + " " + nick + ":No such nick"), 1);
-	else if (nick.compare(_nick) != 0)
-		return((*pollVec)[pollIndex].events = response.addResponse(":monserv 502 " + _username + ":Cant change mode for other users"), 1);
-	else if (nick.size() == args.size())
-		return((*pollVec)[pollIndex].events = response.addResponse(":monserv 221 " + _username + " :+i"), 1); // A CODER (RENVOYER TOUT LES MODES ACTIFS)
-	if (args.find("+i") != std::string::npos)
-		(*pollVec)[pollIndex].events = response.addResponse(":" + _nick + "!" + _username + "@monserv MODE " + _nick +" +i");
-	else if (args.find("+i") != std::string::npos)
-		(*pollVec)[pollIndex].events = response.addResponse(":" + _nick + "!" + _username + "@monserv MODE " + _nick +" +i");
+		return(addResponse(":monserv 461 " + _nick + " MODE :Not enough parameters"), 1);
+	if (args.find(' ') == std::string::npos)
+		roomName = args.substr(0, args.size());
 	else
-		(*pollVec)[pollIndex].events = response.addResponse(":" + _username + "@monserv MODE " + _nick +" +i");
+		roomName = args.substr(0, args.find(' '));
+	if (args[0] != '#')
+		return(addResponse(":monserv 476 " + _nick  + " " + roomName + " :Bad Channel Mask"), 1);
+	roomName.erase(roomName.begin());
+	if (!findOnVec(roomName, (*_rooms)))
+		return(addResponse(":monserv 403 " + _nick  + " #" + roomName + " :No such channel"), 1);
+	else if (!findOnVec(roomName, _roomsNames))
+		return(addResponse(":monserv 442 " + _nick  + " #" + roomName + " :You're not on that channel"), 1);
+	if (args.find(' ') == std::string::npos)
+		std::cout << "RENVOYER TOUT LES MODES DU CHANEL" << std::endl;
+	else
+	{
+		size_t space = args.find(' ');
+		size_t space2 = args.find(' ', space + 1);
+		modes = args.substr(space + 1, space2 - space - 1);
+		if (args.size() > space2 + 1)
+		modesArgs = args.substr(space2 + 1, args.size() - space2 + 1);
+		std::cout << "Roomname : " << roomName << "|\nModes : "
+		<< modes << "|\nModes args : " << modesArgs << "|" << std::endl;
+		_interactMode(roomName, modes, modesArgs);
+	}
 	return(1);
 }
 

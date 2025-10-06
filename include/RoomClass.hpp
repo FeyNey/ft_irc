@@ -11,9 +11,15 @@ class Room {
 
 		int	join(ClientSocket* clientSock, std::string pwd);
 		int	sendMsg(std::string msg, ClientSocket* sender);
-
+		void	sendModesChange(std::string modes, std::string modesArgs, ClientSocket* sender);
 
 		std::string	getName();
+
+		void	k(std::string pwd, char op);
+		void	o(std::string nick, char op);
+		void	l(std::string limit, char op);
+		void	i(char op);
+		void	t(char op);
 
 		private:
 		std::vector<ClientSocket*>	_clientSocks;
@@ -26,9 +32,9 @@ class Room {
 		size_t		_nbUser;
 		bool		_iMode;
 		bool		_kMode;
-		/* bool		_tMode;
-		bool		_oMode;
-		bool		_lMode; */
+		bool		_tMode;
+		bool		_lMode;
+
 
 		bool	_isOp(std::string nick);
 		bool	_isInvited(std::string nick);
