@@ -40,6 +40,8 @@ class ClientSocket : public ASocket {
 		int	user(std::string args, Response& response);
 		int	join(std::string args, Response &response);
 		int	privmsg(std::string args, Response &response);
+		int	part(std::string args, Response &response);
+
 
 		private:
 
@@ -52,6 +54,7 @@ class ClientSocket : public ASocket {
 		void		_interactMode(std::string modes, std::string modesArgs, Room *room);
 
 		std::vector< std::pair<std::string, std::string> >	_parseJoinArgs(std::string args);
+		std::vector<std::string>				_parsePartArgs(std::string args);
 		size_t			_nbRooms;
 		const size_t	_maxNbRooms;
 		std::map<std::string, int (ClientSocket::*)(std::string, Response&)> cmdsMap;

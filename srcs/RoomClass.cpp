@@ -72,6 +72,25 @@ int	Room::sendMsg(std::string msg, ClientSocket* sender)
 	return (1);
 }
 
+int	Room::sendPartMsg(std::string msg, ClientSocket* sender)
+{
+	std::string response;
+
+	if (msg.empty())
+	{
+		response = ":" + sender->getnick() + "!" + sender->getusername()
+		+ "@monserv PART #" + _name;
+	}
+	else
+	{
+		response = ":" + sender->getnick() + "!" + sender->getusername()
+		+ "@monserv PART #" + _name + " :" + msg;
+	}
+	for (size_t i = 0; i < _clientSocks.size(); i++)
+			_clientSocks[i]->addResponse(response);
+	return (0);
+}
+
 void	Room::sendModesChange(std::string modes, std::string modesArgs, ClientSocket* sender)
 {
 	std::string response;
@@ -167,6 +186,32 @@ std::string	Room::getModes()
 	if (_lMode)
 		str += " " + oss.str();
 	return (str);
+}
+
+void	Room::part(ClientSocket *clientSock, std::string msg)
+{
+	std::string nick = clientSock->getnick();
+	if(isOp(nick))
+	{
+		for (std::vector<std::string>::iterator it = _opsNick.begin(); it != _opsNick.end(); ++it)
+		{
+			if((*it).compare(nick) == 0)
+			{
+				_opsNick.erase(it);
+				break;
+			}
+		}
+	}
+	_nbUser--;
+	sendPartMsg(msg, clientSock);
+	for (std::vector<ClientSocket*>::iterator it = _clientSocks.begin(); it != _clientSocks.end(); ++it)
+	{
+		if((*it)->getnick().compare(nick) == 0)
+		{
+			_clientSocks.erase(it);
+			break;
+		}
+	}
 }
 
 Room::~Room()

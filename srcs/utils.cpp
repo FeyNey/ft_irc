@@ -17,6 +17,16 @@ bool	findOnVec(std::string toFind, std::vector<Room*> vec)
 	return (false);
 }
 
+Room*	findOnRoom(std::string toFind, std::vector<Room*> vec)
+{
+	for (std::vector<Room*>::iterator it = vec.begin(); it != vec.end(); ++it)
+	{
+		if ((*it)->getName() == toFind)
+			return((*it));
+	}
+	return nullptr;
+}
+
 std::string getAndDel(std::vector<std::string> &vec)
 {
 

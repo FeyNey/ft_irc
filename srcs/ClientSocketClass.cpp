@@ -9,6 +9,7 @@ ClientSocket::ClientSocket(int listenFd, std::string pwd, std::vector<Room*> *ro
 	cmdsMap["USER"] = &ClientSocket::user;
 	cmdsMap["JOIN"] = &ClientSocket::join;
 	cmdsMap["PRIVMSG"] = &ClientSocket::privmsg;
+	cmdsMap["PART"] = &ClientSocket::part;
 	_len = sizeof(_addr);
 }
 
@@ -137,11 +138,11 @@ std::string	ClientSocket::getusername()
 bool	ClientSocket::isacmd(std::string cmd)
 {
 	static const char* commands[] = {
-		"PING", "MODE", "USER", "JOIN", "PRIVMSG"/*, "PART", "QUIT", "PASS", "NOTICE",
+		"PING", "MODE", "USER", "JOIN", "PRIVMSG", "PART"/*, "QUIT", "PASS", "NOTICE",
 		"TOPIC", "NAMES", "LIST", "WHO", "WHOIS", "WHOWAS", "NICK", "KICK", "INVITE",
 		"OPER", "DIE", "RESTARD", "KILL", "SQUIT", "CONNECT" */ };
 
-	for (int i = 0; i < 5; i++)
+	for (int i = 0; i < 6; i++)
 	{
 		if (cmd == commands[i])
 			return 1;
@@ -237,6 +238,73 @@ void	ClientSocket::_interactMode(std::string modes, std::string modesArgs, Room 
 	room->sendModesChange(modesChange, argsModesChange, this);
 }
 
+std::vector<std::string>	ClientSocket::_parsePartArgs(std::string args)
+{
+	std::vector<std::string>	roomsToPart;
+	size_t i = 0;
+	while (args.find(',', i) != std::string::npos && args.find(',', i) < args.find(' ', i))
+	{
+		roomsToPart.push_back(args.substr(i, args.find(',', i) - i));
+		i = args.find(',', i) + 1;
+	}
+	if (args.find(' ', i) == std::string::npos)
+	{
+		roomsToPart.push_back(args.substr(i, args.size() - i + 1));
+	}
+	else
+	{
+		roomsToPart.push_back( args.substr(i, args.find(' ', i) - i));
+		i = args.find(' ', i) + 1;
+	}
+	for (std::vector<std::string>::iterator roomToPartIt = roomsToPart.begin(); roomToPartIt != roomsToPart.end();)
+	{
+		std::string roomToPart = roomToPartIt->substr(1, roomToPartIt->size() - 1);
+		if (!findOnVec(roomToPart, (*_rooms)))
+		{
+			addResponse(":monserv 403 " + _nick  + " #" + roomToPart + " :No such channel");
+			roomToPartIt = roomsToPart.erase(roomToPartIt);
+		}
+		else if (!findOnVec(roomToPart, _roomsNames))
+		{
+			addResponse(":monserv 442 " + _nick  + " #" + roomToPart + " :You're not on that channel");
+			roomToPartIt = roomsToPart.erase(roomToPartIt);
+		}
+		else
+		{
+			*roomToPartIt = roomToPart;
+			++roomToPartIt;
+		}
+		for (std::vector<std::string>::iterator myRoomsIt = _roomsNames.begin(); myRoomsIt != _roomsNames.end();)
+		{
+			if (myRoomsIt->compare(roomToPart) == 0)
+			{
+				myRoomsIt = _roomsNames.erase(myRoomsIt);
+			}
+			else
+				++myRoomsIt;
+		}
+	}
+	return(roomsToPart);
+}
+
+int	ClientSocket::part(std::string args, Response &response)
+{
+	(void) response;
+	std::vector<std::string>	roomNames = _parsePartArgs(args);
+	std::string					message;
+	size_t						find = args.find(':');
+	if(find != std::string::npos)
+		message = args.substr(find + 1, args.size() - find - 1);
+	for (std::vector<std::string>::iterator it = roomNames.begin(); it != roomNames.end(); ++it)
+	{
+		Room	*room = findOnRoom(*it, *_rooms);
+		room->part(this, message);
+		_nbRooms--;
+	}
+	return(0);
+}
+
+
 int	ClientSocket::mode(std::string args, Response &response)
 {
 	(void)		response;
@@ -258,11 +326,7 @@ int	ClientSocket::mode(std::string args, Response &response)
 		return(addResponse(":monserv 403 " + _nick  + " #" + roomName + " :No such channel"), 1);
 	else if (!findOnVec(roomName, _roomsNames))
 		return(addResponse(":monserv 442 " + _nick  + " #" + roomName + " :You're not on that channel"), 1);
-	for (size_t i = 0; i < _rooms->size(); i++)
-	{
-		if ((*_rooms)[i]->getName() == roomName)
-			room = (*_rooms)[i];
-	}
+	room = findOnRoom(roomName, *_rooms);
 	if (args.find(' ') == std::string::npos)
 		return(addResponse(":monserv 324 " + _nick  + " #" + roomName + " " + room->getModes()), 1);
 	else
