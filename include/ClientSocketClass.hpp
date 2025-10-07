@@ -4,10 +4,12 @@
 #include "ASocketClass.hpp"
 #include "RequestClass.hpp"
 #include "ResponseClass.hpp"
+#include <cstdlib>
 #include "poll.h"
 #include <fstream>
 #include <sstream>
 #include "utils.hpp"
+#include <climits>
 
 class Room;
 
@@ -41,7 +43,7 @@ class ClientSocket : public ASocket {
 		int	join(std::string args, Response &response);
 		int	privmsg(std::string args, Response &response);
 		int	part(std::string args, Response &response);
-
+		int	kick(std::string args, Response &response);
 
 		private:
 

@@ -10,6 +10,7 @@ ClientSocket::ClientSocket(int listenFd, std::string pwd, std::vector<Room*> *ro
 	cmdsMap["JOIN"] = &ClientSocket::join;
 	cmdsMap["PRIVMSG"] = &ClientSocket::privmsg;
 	cmdsMap["PART"] = &ClientSocket::part;
+	cmdsMap["KICK"] = &ClientSocket::kick;
 	_len = sizeof(_addr);
 }
 
@@ -480,4 +481,11 @@ void ClientSocket::addResponse(std::string response)
 {
 	_response += response + "\r\n";
 	(*pollVec)[pollIndex].events = POLLOUT;
+}
+
+int	ClientSocket::kick(std::string args, Response &response)
+{
+	(void)response;
+	printf("%s", args.c_str());
+	return (0);
 }
