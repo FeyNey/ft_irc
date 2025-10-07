@@ -29,7 +29,6 @@ int	Room::join(ClientSocket* clientSock, std::string pwd)
 	std::string response;
 	std::string nameList;
 
-	std::cout << _name << "|" << _pwd << "|" << pwd << "|" << _kMode << std::endl;
 	if (_kMode && _nbUser > 0 && pwd.compare(_pwd) != 0)
 		return(	clientSock->addResponse(":monserv 475 " + clientSock->getnick() + " #" + _name + " :Cannot join channel (+k)" ), 1);
 	if(_lMode && _nbUser == _maxUser)

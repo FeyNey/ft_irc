@@ -313,7 +313,7 @@ std::vector< std::pair<std::string, std::string> >	ClientSocket::_parseJoinArgs(
 	while (args.find(',', i) != std::string::npos && args.find(',', i) < args.find(' ', i))
 	{
 		std::pair<std::string, std::string> pair;
-		pair.first = args.substr(i + 1, args.find(',', i) - i - 1);
+		pair.first = args.substr(i, args.find(',', i) - i);
 		argsVec.push_back(pair);
 		i = args.find(',', i) + 1;
 	}
@@ -322,7 +322,7 @@ std::vector< std::pair<std::string, std::string> >	ClientSocket::_parseJoinArgs(
 
 	if (args.find(' ', i) == std::string::npos)
 	{
-		pair.first = args.substr(i + 1, args.size() - i);
+		pair.first = args.substr(i, args.size() - i + 1);
 		argsVec.push_back(pair);
 		for(size_t l = 0; l < argsVec.size(); l++)
 			argsVec[l].second = 'x';
@@ -330,7 +330,7 @@ std::vector< std::pair<std::string, std::string> >	ClientSocket::_parseJoinArgs(
 	}
 	else
 	{
-		pair.first = args.substr(i + 1, args.find(' ', i) - i - 1);
+		pair.first = args.substr(i, args.find(' ', i) - i);
 		argsVec.push_back(pair);
 		i = args.find(' ', i) + 1;
 	}
@@ -352,21 +352,21 @@ int	ClientSocket::join(std::string args, Response &response)
 	std::string roomName;
 	std::vector< std::pair<std::string, std::string> > argsVec;
 	argsVec = _parseJoinArgs(args);
-	for(size_t k = 0; k < argsVec.size(); k++)
-		std::cout << "First :" << argsVec[k].first << "Second :" << argsVec[k].second << std::endl;
+	/* for(size_t k = 0; k < argsVec.size(); k++)
+		std::cout << "First :" << argsVec[k].first << "Second :" << argsVec[k].second << std::endl; */
 	for(size_t i = 0; i < argsVec.size(); i++)
 	{
-		roomName = argsVec[i].first;
-		if (roomName.empty())
+		if (argsVec[i].first.empty())
 		{
 			addResponse(":monserv 461 " + _nick + " JOIN " + ":Not enough parameters");
 			continue;
 		}
-		/* else if(roomName[0] != '#')
+		roomName = argsVec[i].first.substr(1, argsVec[i].first.size() - 1);
+		if(argsVec[i].first[0] != '#')
 		{
-			addResponse(":monserv 403 " + _nick + " " + roomName + " :No such chanel");
+			addResponse(":monserv 403 " + _nick + " " + argsVec[i].first + " :No such chanel");
 			continue;
-		} */
+		}
 		else if (_nbRooms == _maxNbRooms)
 		{
 			addResponse(":monserv 405 " + _nick + " #" + roomName + " :You have joined too many channels\r\n");
@@ -397,7 +397,6 @@ int	ClientSocket::privmsg(std::string args, Response &response)
 	{
 		std::string roomName;
 		roomName = args.substr(1, args.find(' ') - 1);
-		std::cout << roomName << std::endl;
 		for (size_t i = 0; i < _roomsNames.size(); i++)
 		{
 			if (roomName == _roomsNames[i])
