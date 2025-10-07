@@ -14,6 +14,8 @@ class Room {
 		void	sendModesChange(std::string modes, std::string modesArgs, ClientSocket* sender);
 
 		std::string	getName();
+		std::string	getModes();
+		bool	isOp(std::string nick);
 
 		void	k(std::string pwd, char op);
 		void	o(std::string nick, char op);
@@ -36,7 +38,6 @@ class Room {
 		bool		_lMode;
 
 
-		bool	_isOp(std::string nick);
 		bool	_isInvited(std::string nick);
 
 };

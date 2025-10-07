@@ -7,7 +7,7 @@ Room::Room(std::string name, ClientSocket* clientSock) : _name(name), _topic("")
 	std::cout << "Room #" << name << " created" << std::endl;
 }
 
-bool	Room::_isOp(std::string nick)
+bool	Room::isOp(std::string nick)
 {
 	for (size_t i = 0; i < _opsNick.size(); i++)
 		if(nick.compare(_opsNick[i]) == 0)
@@ -47,7 +47,7 @@ int	Room::join(ClientSocket* clientSock, std::string pwd)
 		clientSock->addResponse(":monserv 332 " + clientSock->getnick() + " #" + _name + " :" + _topic);
 	for (size_t i = 0; i < _clientSocks.size(); i++)
 	{
-		if(_isOp(_clientSocks[i]->getnick()))
+		if(isOp(_clientSocks[i]->getnick()))
 			nameList += "@";
 		nameList += _clientSocks[i]->getnick();
 		if (i + 1 < _clientSocks.size())
@@ -146,6 +146,27 @@ void	Room::l(std::string limit, char op)
 std::string	Room::getName()
 {
 	return(_name);
+}
+
+std::string	Room::getModes()
+{
+	std::ostringstream oss;
+	oss << _maxUser;
+	std::string str = "+";
+
+	if (_kMode)
+		str += "k";
+	if (_lMode)
+		str += "l";
+	if (_iMode)
+		str += "i";
+	if (_tMode)
+		str += "t";
+	if (_kMode)
+		str += " " + _pwd;
+	if (_lMode)
+		str += " " + oss.str();
+	return (str);
 }
 
 Room::~Room()

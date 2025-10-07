@@ -188,9 +188,8 @@ int	ClientSocket::ping(std::string args, Response &response)
 	return(1);
 }
 
-void	ClientSocket::_interactMode(std::string roomName, std::string modes, std::string modesArgs)
+void	ClientSocket::_interactMode(std::string modes, std::string modesArgs, Room *room)
 {
-	Room						*room;
 	std::vector<std::string>	argsVec;
 	std::string					modesChange;
 	std::string					argsModesChange;
@@ -199,11 +198,6 @@ void	ClientSocket::_interactMode(std::string roomName, std::string modes, std::s
 
 	if(!modesArgs.empty())
 		argsVec = split(modesArgs);
-	for (size_t i = 0; i < _rooms->size(); i++)
-	{
-		if ((*_rooms)[i]->getName() == roomName)
-			room = (*_rooms)[i];
-	}
 	for (size_t i = 0; i < modes.size(); i++)
 	{
 		if(i == 0 && modes[i] != '-' && modes[i] != '+')
@@ -220,7 +214,7 @@ void	ClientSocket::_interactMode(std::string roomName, std::string modes, std::s
 				addResponse(":monserv 472 " + _nick + " " + modes[0] + " :is unknown mode char to me");
 				return;
 			}
-			else
+			else if (op != '-' || modes[i] == 'o')
 			{
 				lastArg = getAndDel(argsVec);
 				argsModesChange += lastArg;
@@ -228,7 +222,7 @@ void	ClientSocket::_interactMode(std::string roomName, std::string modes, std::s
 					argsModesChange += " ";
 			}
 		}
-		if (modes[i] == 'k' && op == '+')
+		if (modes[i] == 'k')
 			room->k(lastArg, op);
 		else if (modes[i] == 'i')
 			room->i(op);
@@ -240,12 +234,13 @@ void	ClientSocket::_interactMode(std::string roomName, std::string modes, std::s
 			room->l(lastArg, op);
 		modesChange += modes[i];
 	}
-	room->sendModesChange(modesChange, modesArgs, this);
+	room->sendModesChange(modesChange, argsModesChange, this);
 }
 
 int	ClientSocket::mode(std::string args, Response &response)
 {
 	(void)		response;
+	Room		*room;
 	std::string	roomName;
 	std::string	modes;
 	std::string	modesArgs;
@@ -263,8 +258,13 @@ int	ClientSocket::mode(std::string args, Response &response)
 		return(addResponse(":monserv 403 " + _nick  + " #" + roomName + " :No such channel"), 1);
 	else if (!findOnVec(roomName, _roomsNames))
 		return(addResponse(":monserv 442 " + _nick  + " #" + roomName + " :You're not on that channel"), 1);
+	for (size_t i = 0; i < _rooms->size(); i++)
+	{
+		if ((*_rooms)[i]->getName() == roomName)
+			room = (*_rooms)[i];
+	}
 	if (args.find(' ') == std::string::npos)
-		std::cout << "RENVOYER TOUT LES MODES DU CHANEL" << std::endl;
+		return(addResponse(":monserv 324 " + _nick  + " #" + roomName + " " + room->getModes()), 1);
 	else
 	{
 		size_t space = args.find(' ');
@@ -272,11 +272,12 @@ int	ClientSocket::mode(std::string args, Response &response)
 		modes = args.substr(space + 1, space2 - space - 1);
 		if (args.size() > space2 + 1)
 		modesArgs = args.substr(space2 + 1, args.size() - space2 + 1);
-		std::cout << "Roomname : " << roomName << "|\nModes : "
-		<< modes << "|\nModes args : " << modesArgs << "|" << std::endl;
-		_interactMode(roomName, modes, modesArgs);
+		if (room->isOp(_nick))
+			_interactMode(modes, modesArgs, room);
+		else
+			return(addResponse(":monserv 482 " + _nick  + " #" + roomName + " :You're not channel operator"), 1);
 	}
-	return(1);
+	return(0);
 }
 
 int	ClientSocket::user(std::string args, Response &response)
@@ -352,8 +353,6 @@ int	ClientSocket::join(std::string args, Response &response)
 	std::string roomName;
 	std::vector< std::pair<std::string, std::string> > argsVec;
 	argsVec = _parseJoinArgs(args);
-	/* for(size_t k = 0; k < argsVec.size(); k++)
-		std::cout << "First :" << argsVec[k].first << "Second :" << argsVec[k].second << std::endl; */
 	for(size_t i = 0; i < argsVec.size(); i++)
 	{
 		if (argsVec[i].first.empty())

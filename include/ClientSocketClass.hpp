@@ -49,7 +49,7 @@ class ClientSocket : public ASocket {
 		bool		_connected;
 		void		_unlock(Response	&response, std::string cmd, std::string args);
 		int			_isRoom(std::string roomName);
-		void		_interactMode(std::string roomName, std::string modes, std::string modesArgs);
+		void		_interactMode(std::string modes, std::string modesArgs, Room *room);
 
 		std::vector< std::pair<std::string, std::string> >	_parseJoinArgs(std::string args);
 		size_t			_nbRooms;
