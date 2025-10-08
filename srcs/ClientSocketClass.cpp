@@ -139,11 +139,11 @@ std::string	ClientSocket::getusername()
 bool	ClientSocket::isacmd(std::string cmd)
 {
 	static const char* commands[] = {
-		"PING", "MODE", "USER", "JOIN", "PRIVMSG", "PART"/*, "QUIT", "PASS", "NOTICE",
-		"TOPIC", "NAMES", "LIST", "WHO", "WHOIS", "WHOWAS", "NICK", "KICK", "INVITE",
+		"PING", "MODE", "USER", "JOIN", "PRIVMSG", "PART", "KICK"/*, "QUIT", "PASS", "NOTICE",
+		"TOPIC", "NAMES", "LIST", "WHO", "WHOIS", "WHOWAS", "NICK", "INVITE",
 		"OPER", "DIE", "RESTARD", "KILL", "SQUIT", "CONNECT" */ };
 
-	for (int i = 0; i < 6; i++)
+	for (int i = 0; i < 7; i++)
 	{
 		if (cmd == commands[i])
 			return 1;
@@ -351,7 +351,7 @@ int	ClientSocket::user(std::string args, Response &response)
 	std::vector<std::string> argsVec = split(args);
 	_username = argsVec[0];
 	_hostname = argsVec[1];
-	_servername = argsVec[2];
+	_servername = argsVec[2]; //verif invalid  read
 	_realname = argsVec[3];
 	return(0);
 }
@@ -486,6 +486,43 @@ void ClientSocket::addResponse(std::string response)
 int	ClientSocket::kick(std::string args, Response &response)
 {
 	(void)response;
-	printf("%s", args.c_str());
+	int	i = 0;
+	int	b = 0;
+	std::vector<std::string> args_tab;
+	args_tab = split(args);
+	for (std::vector<std::string>::iterator it = args_tab.begin(); it != args_tab.end(); ++it)
+	{
+		std::cout << *it << std::endl;
+	}
+	if (args_tab[0][0] != '#')
+		return (addResponse(":monserv 461 " + _nick + "KICK :Not enough parameters"), 1);
+	for (size_t j = 0; j < (*_rooms).size(); j++)
+	{
+		if ((*_rooms)[j]->getName() == args_tab[0])
+		{
+			i = j;
+			break;
+		}
+	}
+	if (i == 0)
+		return (addResponse(":monserv 403 " + _nick + " " + args_tab[0] + " :No such channel"), 1);
+	for (std::vector<std::string>::iterator it = _roomsNames.begin(); it != _roomsNames.end(); ++it)
+	{
+		if (*it == args_tab[0])
+			b = 1;
+	}
+	if (b == 0)
+		return (addResponse(":monserv 442 " + _nick + " " + args_tab[0] + " :You're not on that channel"), 1);
+	if (!(*_rooms)[i]->isOp(_nick))
+		return (addResponse(":monserv 482 " + _nick + " " + args_tab[0] + " :You're not channel operator"), 1);
+/* 	while (args_tab[b])
+	{
+		// verif if le user is in the channel if not
+		//   "<client> <nick> <channel> :They aren't on that channel"
+		//if it is kick the user
+
+		b++;
+	} */
+
 	return (0);
 }

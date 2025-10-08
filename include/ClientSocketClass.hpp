@@ -45,6 +45,8 @@ class ClientSocket : public ASocket {
 		int	part(std::string args, Response &response);
 		int	kick(std::string args, Response &response);
 
+
+
 		private:
 
 		socklen_t 	_len;
