@@ -19,6 +19,8 @@ class Room {
 		std::string	getName();
 		std::string	getModes();
 		bool		isOp(std::string nick);
+		bool		is_in_room(std::string nick);
+		ClientSocket	*user_on_room(std::string nick);
 
 		void	k(std::string pwd, char op);
 		void	o(std::string nick, char op);

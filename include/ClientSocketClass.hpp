@@ -32,6 +32,7 @@ class ClientSocket : public ASocket {
 		void						interactcmd(std::string cmd, std::string args, Response &response);
 		static bool					isacmd(std::string cmd);
 		std::vector<std::string>	split(std::string str);
+		std::vector<std::string>	kick_split(std::string str);
 
 		std::string getpwd();
 		std::string getnick();
@@ -44,8 +45,8 @@ class ClientSocket : public ASocket {
 		int	privmsg(std::string args, Response &response);
 		int	part(std::string args, Response &response);
 		int	kick(std::string args, Response &response);
-
-
+		int	kick_user_check(std::string user, Room *salon);
+		int	kick_user(std::string user, std::string comment, Room *salon);
 
 		private:
 
@@ -72,7 +73,6 @@ class ClientSocket : public ASocket {
 		std::string _realname;
 		std::vector<Room*> *_rooms;
 		std::vector<std::string> _roomsNames;
-
 
 
 

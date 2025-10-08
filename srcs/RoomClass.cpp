@@ -15,6 +15,22 @@ bool	Room::isOp(std::string nick)
 	return (false);
 }
 
+bool	Room::is_in_room(std::string nick)
+{
+	for (size_t i = 0; i < _clientSocks.size(); i++)
+	if (nick.compare(_clientSocks[i]->getnick()) == 0)
+		return (true);
+	return (false);
+}
+ClientSocket	*Room::user_on_room(std::string nick)
+{
+	for (size_t i = 0; i < _clientSocks.size(); i++)
+	if (nick.compare(_clientSocks[i]->getnick()) == 0)
+		return (_clientSocks[i]);
+	return (NULL);
+
+}
+
 bool	Room::_isInvited(std::string nick)
 {
 	for (size_t i = 0; i < _inviteNick.size(); i++)
@@ -90,6 +106,25 @@ int	Room::sendPartMsg(std::string msg, ClientSocket* sender)
 			_clientSocks[i]->addResponse(response);
 	return (0);
 }
+
+/* int	Room::sendPartMsgKick(std::string msg, ClientSocket* sender)
+{
+	std::string response;
+
+	if (msg.empty())
+	{
+		response = ":" + sender->getnick() + "!" + sender->getusername()
+		+ "@monserv PART #" + _name;
+	}
+	else
+	{
+		response = ":" + sender->getnick() + "!" + sender->getusername()
+		+ "@monserv PART #" + _name + " :" + msg;
+	}
+	for (size_t i = 0; i < _clientSocks.size(); i++)
+			_clientSocks[i]->addResponse(response);
+	return (0);
+} */
 
 void	Room::sendModesChange(std::string modes, std::string modesArgs, ClientSocket* sender)
 {
