@@ -486,17 +486,17 @@ void ClientSocket::addResponse(std::string response)
 int	ClientSocket::kick_user_check(std::string user, Room *salon)
 {
 	if (user == _nick)
-		return (addResponse(":monserv 444: " + salon->getName() + " " + _nick + "You can't kick yourself"), 1);
+		return (addResponse(":monserv 444: " + salon->getName() + " " + _nick + " You can't kick yourself"), 1);
 	if (salon->isOp(user))
-		return (addResponse(":monserv 445: " + salon->getName() + " " + user + "Can't kick an operator"), 1);
+		return (addResponse(":monserv 445: " + salon->getName() + " " + user + " Can't kick an operator"), 1);
 	if (!salon->is_in_room(user))
-		return (addResponse(":monserv 446: " + salon->getName() + " " + user + ":is not on channel"), 1);
+		return (addResponse(":monserv 446: " + salon->getName() + " " + user + " :is not on channel"), 1);
 	return (0);
 }
 
 std::vector<std::string> ClientSocket::kick_split(std::string str)
 {
-	int							pos = 0;
+	size_t							pos = 0;
 	size_t 						i = 0;
 	std::vector<std::string>	requests;
 
@@ -505,12 +505,19 @@ std::vector<std::string> ClientSocket::kick_split(std::string str)
 		if (str[i] == ',')
 		{
 			requests.push_back(str.substr(pos, i - pos));
-			pos = i + 2;
+			pos = i + 1;
 			i++;
 		}
 	}
-	// if (pos < str.size())
-		// requests.push_back(str.substr(pos, i - pos));
+	if (pos < str.size())
+		requests.push_back(str.substr(pos, i - pos));
+
+	// std::cout << "request = " << std::endl;
+
+	// for (size_t j = 0; j < requests.size(); j++)
+	// 	std::cout << "[" << requests[j] << "] ";
+
+	// std::cout << std::endl;
 
 	return (requests);
 }
@@ -519,29 +526,25 @@ int	ClientSocket::kick_user(std::string user, std::string comment, Room *salon)
 	(void)user;
 	(void)comment;
 	(void)salon;
-/* 	ClientSocket *client = salon->user_on_room(user);
-	salon->part(client);
+	ClientSocket *client = salon->user_on_room(user);
 
-	{
-	std::string nick = clientSock->getnick();
-	_nbUser--;
+/* 	std::string response;
 
-	salon->sendPartMsg(comment, clientSock);
-	for (std::vector<ClientSocket*>::iterator it = _clientSocks.begin(); it != _clientSocks.end(); ++it)
+	if (comment.empty())
 	{
-		if((*it)->getnick().compare(nick) == 0)
-		{
-			_clientSocks.erase(it);
-			break;
-		}
+		response = this->getnick() + " KICK " + "#" + salon->getName() + " " + client->getnick();
 	}
-}
-	//send msgs a la room avec le commentaire
-
+	else
+	{
+		response = this->getnick() + " KICK " + "#" + salon->getName() + " " + client->getnick()
+		+ ":" + comment;
+	} */
+	salon->kick(this, client, comment);
 	//deconnect le client de la room
 
-	//
-	*/
+	salon->Kickmsg(comment, this, client); //envoie le message a la room
+	//send msgs a la room avec le commentaire
+
 	return (0);
 }
 
@@ -554,12 +557,14 @@ int	ClientSocket::kick(std::string args, Response &response)
 	std::vector<std::string> args_tab;
 	args_tab = split(args);
 	std::cout << "Commande KICK" << std::endl;
+	std::cout << " a " << std::endl;
 	if (args_tab.size() > 3) //verif
 		return (addResponse("monserv 463 " + _nick + "KICK :too mutch parameters"), 1);
 	for (std::vector<std::string>::iterator it = args_tab.begin(); it != args_tab.end(); ++it)
 	{
 		std::cout << *it << std::endl;
 	}
+	std::cout << " b " << std::endl;
 	if (args_tab[0][0] != '#')
 		return (addResponse(":monserv 461 " + _nick + "KICK :Not enough parameters"), 1);
 	for (size_t j = 0; j < (*_rooms).size(); j++)
@@ -570,6 +575,7 @@ int	ClientSocket::kick(std::string args, Response &response)
 			break;
 		}
 	}
+	std::cout << " c " << std::endl;
 	if (i == -1)
 		return (addResponse(":monserv 403 " + _nick + " " + args_tab[0] + " :No such channel"), 1);
 	for (std::vector<std::string>::iterator it = _roomsNames.begin(); it != _roomsNames.end(); ++it)
@@ -577,24 +583,26 @@ int	ClientSocket::kick(std::string args, Response &response)
 		if (*it == &args_tab[0][1]) // sans le #
 			b = 1;
 	}
+	std::cout << " d " << std::endl;
 	if (b == 0)
 		return (addResponse(":monserv 442 " + _nick + " " + args_tab[0] + " :You're not on that channel"), 1);
+	std::cout << " e " << std::endl;
 	if (!(*_rooms)[i]->isOp(_nick))
 		return (addResponse(":monserv 482 " + _nick + " " + args_tab[0] + " :You're not channel operator"), 1);
-	if (args_tab.size() == 2) //verif a partir d ici
-	{
-		if (kick_user_check(args_tab[1], (*_rooms)[i]) == 1)
-			return (1);
-		kick_user(args_tab[1], NULL, (*_rooms)[i]); // TODO
-		return (0); // TO AD
-	}
+	std::cout << " f " << std::endl;
 	comment = args_tab[2];
 	if (args_tab.size() == 3)
 	{
+		std::cout << "JUMPING THAT" << std::endl;
+		std::cout << args_tab.size() << std::endl;
 		args_tab = kick_split(args_tab[1]);
+
+		std::cout << args_tab.size();
 		for (size_t w = 0; w < args_tab.size(); w++)
 		{
-			kick_user_check(args_tab[w], (*_rooms)[i]);
+			std::cout << w << " that is it" << std::endl;
+			if (kick_user_check(args_tab[w], (*_rooms)[i]) == 1)
+				continue;
 			kick_user(args_tab[w], comment, (*_rooms)[i]);
 		}
 	}

@@ -88,6 +88,21 @@ int	Room::sendMsg(std::string msg, ClientSocket* sender)
 	return (1);
 }
 
+int	Room::Kickmsg(std::string msg, ClientSocket* sender, ClientSocket *excluded)
+{
+	std::string response;
+
+	response = ":" + sender->getnick() + "!" + sender->getusername()
+	+ "@monserv PRIVMSG #" + _name + " :" + msg;
+	for (size_t i = 0; i < _clientSocks.size(); i++)
+	{
+		if (_clientSocks[i] != excluded) // && _clientSpcks[i] != sender
+		_clientSocks[i]->addResponse(response);
+	}
+	return (1);
+}
+
+
 int	Room::sendPartMsg(std::string msg, ClientSocket* sender)
 {
 	std::string response;
@@ -106,25 +121,6 @@ int	Room::sendPartMsg(std::string msg, ClientSocket* sender)
 			_clientSocks[i]->addResponse(response);
 	return (0);
 }
-
-/* int	Room::sendPartMsgKick(std::string msg, ClientSocket* sender)
-{
-	std::string response;
-
-	if (msg.empty())
-	{
-		response = ":" + sender->getnick() + "!" + sender->getusername()
-		+ "@monserv PART #" + _name;
-	}
-	else
-	{
-		response = ":" + sender->getnick() + "!" + sender->getusername()
-		+ "@monserv PART #" + _name + " :" + msg;
-	}
-	for (size_t i = 0; i < _clientSocks.size(); i++)
-			_clientSocks[i]->addResponse(response);
-	return (0);
-} */
 
 void	Room::sendModesChange(std::string modes, std::string modesArgs, ClientSocket* sender)
 {
@@ -244,6 +240,40 @@ void	Room::part(ClientSocket *clientSock, std::string msg)
 		if((*it)->getnick().compare(nick) == 0)
 		{
 			_clientSocks.erase(it);
+			break;
+		}
+	}
+}
+
+/* int	Room::sendPartMsgKick(ClientSocket *user, std::string msg, ClientSocket* sender)
+{
+	std::string response;
+
+	if (msg.empty())
+	{
+		response = user->getnick() + " KICK " + "#" + _name + " " + sender->getnick();
+	}
+	else
+	{
+		response = user->getnick() + " KICK " + "#" + _name + " " + sender->getnick()
+		+ ":" + msg;
+	}
+	for (size_t i = 0; i < _clientSocks.size(); i++)
+			_clientSocks[i]->addResponse(response);
+	return (0);
+} */
+
+void	Room::kick(ClientSocket *user, ClientSocket *client, std::string msg)
+{
+	std::string nick = client->getnick();
+	_nbUser--;
+	// sendPartMsgKick(user, msg, client);
+	for (std::vector<ClientSocket*>::iterator it = _clientSocks.begin(); it != _clientSocks.end(); ++it)
+	{
+		if((*it)->getnick().compare(nick) == 0)
+		{
+			_clientSocks.erase(it);
+			(*it)->addResponse("You haved been KICK from " + this->getName() + " by " + user->getnick() + ":" + msg);
 			break;
 		}
 	}
