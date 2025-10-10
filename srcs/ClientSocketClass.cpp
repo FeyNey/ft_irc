@@ -583,13 +583,10 @@ int	ClientSocket::kick(std::string args, Response &response)
 		if (*it == &args_tab[0][1]) // sans le #
 			b = 1;
 	}
-	std::cout << " d " << std::endl;
 	if (b == 0)
 		return (addResponse(":monserv 442 " + _nick + " " + args_tab[0] + " :You're not on that channel"), 1);
-	std::cout << " e " << std::endl;
 	if (!(*_rooms)[i]->isOp(_nick))
 		return (addResponse(":monserv 482 " + _nick + " " + args_tab[0] + " :You're not channel operator"), 1);
-	std::cout << " f " << std::endl;
 	comment = args_tab[2];
 	if (args_tab.size() == 3)
 	{
@@ -597,7 +594,13 @@ int	ClientSocket::kick(std::string args, Response &response)
 		std::cout << args_tab.size() << std::endl;
 		args_tab = kick_split(args_tab[1]);
 
-		std::cout << args_tab.size();
+		std::cout << "tab size : " << args_tab.size() << "   <<--  if no nbr it s wrong" << std::endl;
+
+		for (std::vector<std::string>::iterator it = args_tab.begin(); it < args_tab.end(); ++it)
+		{
+			std::cout << "args_tab_string = " << *it << std::endl;
+		}
+
 		for (size_t w = 0; w < args_tab.size(); w++)
 		{
 			std::cout << w << " that is it" << std::endl;
