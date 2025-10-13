@@ -41,6 +41,8 @@ class ClientSocket : public ASocket {
 		int	join(std::string args, Response &response);
 		int	privmsg(std::string args, Response &response);
 		int	part(std::string args, Response &response);
+		int	invite(std::string args, Response &response);
+
 
 
 		private:

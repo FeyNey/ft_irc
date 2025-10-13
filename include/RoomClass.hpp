@@ -15,10 +15,12 @@ class Room {
 		int		sendPartMsg(std::string msg, ClientSocket* sender);
 		void	part(ClientSocket *clientSock, std::string msg);
 		void	sendModesChange(std::string modes, std::string modesArgs, ClientSocket* sender);
+		void	invite(ClientSocket *invited, ClientSocket *inviter);
 
 		std::string	getName();
 		std::string	getModes();
 		bool		isOp(std::string nick);
+		bool		isOnRoom(std::string nick);
 
 		void	k(std::string pwd, char op);
 		void	o(std::string nick, char op);

@@ -9,8 +9,16 @@ Room::Room(std::string name, ClientSocket* clientSock) : _name(name), _topic("")
 
 bool	Room::isOp(std::string nick)
 {
-	for (size_t i = 0; i < _opsNick.size(); i++)
-		if(nick.compare(_opsNick[i]) == 0)
+	for (std::vector<std::string>::iterator it = _opsNick.begin(); it != _opsNick.end(); ++it)
+		if(nick.compare(*it) == 0)
+			return (true);
+	return (false);
+}
+
+bool	Room::isOnRoom(std::string nick)
+{
+	for (std::vector<ClientSocket *>::iterator it = _clientSocks.begin(); it != _clientSocks.end(); ++it)
+		if(nick.compare((*it)->getnick()) == 0)
 			return (true);
 	return (false);
 }
@@ -21,6 +29,13 @@ bool	Room::_isInvited(std::string nick)
 		if(nick.compare(_inviteNick[i]) == 0)
 			return (true);
 	return (false);
+}
+
+void	Room::invite(ClientSocket *invited, ClientSocket *inviter)
+{
+	_inviteNick.push_back(invited->getnick());
+	inviter->addResponse(":monserv 341 " + inviter->getnick() + " " + invited->getnick() + " #" + _name);
+	invited->addResponse(":" + inviter->getnick() + "!" + invited->getusername() + "@monserv INVITE " + invited->getnick() + " :#"  + _name);
 }
 
 

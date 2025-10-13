@@ -10,6 +10,7 @@ ClientSocket::ClientSocket(int listenFd, std::string pwd, std::vector<Room*> *ro
 	cmdsMap["JOIN"] = &ClientSocket::join;
 	cmdsMap["PRIVMSG"] = &ClientSocket::privmsg;
 	cmdsMap["PART"] = &ClientSocket::part;
+	cmdsMap["INVITE"] = &ClientSocket::invite;
 	_len = sizeof(_addr);
 }
 
@@ -138,11 +139,11 @@ std::string	ClientSocket::getusername()
 bool	ClientSocket::isacmd(std::string cmd)
 {
 	static const char* commands[] = {
-		"PING", "MODE", "USER", "JOIN", "PRIVMSG", "PART"/*, "QUIT", "PASS", "NOTICE",
-		"TOPIC", "NAMES", "LIST", "WHO", "WHOIS", "WHOWAS", "NICK", "KICK", "INVITE",
+		"PING", "MODE", "USER", "JOIN", "PRIVMSG", "PART", "INVITE"/*, "PASS", "NOTICE",
+		"TOPIC", "NAMES", "LIST", "WHO", "WHOIS", "WHOWAS", "NICK", "KICK", "QUIT",
 		"OPER", "DIE", "RESTARD", "KILL", "SQUIT", "CONNECT" */ };
 
-	for (int i = 0; i < 6; i++)
+	for (int i = 0; i < 7; i++)
 	{
 		if (cmd == commands[i])
 			return 1;
@@ -450,6 +451,33 @@ int	ClientSocket::join(std::string args, Response &response)
 		}
 	}
 	return(0);
+}
+
+int	ClientSocket::invite(std::string args, Response &response)
+{
+	(void) response;
+	std::vector<std::string> argsVec = split(args);
+	if(argsVec.size() <= 1)
+			return(addResponse(":monserv 461 " + _nick + " INVITE :Not enough parameters"), 1);
+	std::string roomName = argsVec[1].substr(1, argsVec[1].size() - 1);
+	Room *room = findOnRoom(roomName, *_rooms);
+	if (!room)
+		return(addResponse(":monserv 403 " + _nick  + " #" + roomName + " :No such channel"), 1);
+	else if (!findOnVec(roomName, *_rooms))
+		return (addResponse(":monserv 442 " + _nick  + " #" + roomName + " :You're not on that channel"), 1);
+	else if(room->getModes().find('i') != std::string::npos && !room->isOp(_nick))
+		return (addResponse(":monserv 482 " + _nick  + " #" + roomName + " :You're not channel operator"), 1);
+	else if(room->isOnRoom(argsVec[0]))
+		return(addResponse(":monserv 443 " + _username + " " + _nick + " #" + roomName + " :You're not channel operator"), 1);
+	else
+	{
+		for(std::vector<ClientSocket*>::iterator it = clientSocks->begin(); it != clientSocks->end(); ++it)
+		{
+			if ((*it)->getnick().compare(argsVec[0]) == 0)
+				return(room->invite(*it, this), 0);
+		}
+	}
+	return(1);
 }
 
 int	ClientSocket::privmsg(std::string args, Response &response)
