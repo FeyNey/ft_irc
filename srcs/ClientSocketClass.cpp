@@ -355,7 +355,19 @@ int	ClientSocket::nick(std::string args, Response &response)
 	else if (!findOnClient(args, *clientSocks))
 	{
 		if (!_nick.empty())
+		{
 			addResponse(":" + _nick + "!" + _username + "@monserv NICK " + args);
+			for (std::vector<Room*>::iterator itRoom = _rooms->begin(); itRoom != _rooms->end(); ++itRoom)
+			{
+				std::cout << "ROOM : " << (*itRoom)->getName() << std::endl;
+				for (std::vector<std::string>::iterator itName = _roomsNames.begin(); itName != _roomsNames.end(); ++itName)
+				{
+					std::cout << "NAME : " << *itName << std::endl;
+						if ((*itRoom)->getName().compare(*itName) == 0)
+							(*itRoom)->changeOpNick(args, _nick);
+				}
+			}
+		}
 		_nick = args;
 	}
 	else
@@ -365,7 +377,13 @@ int	ClientSocket::nick(std::string args, Response &response)
 int	ClientSocket::user(std::string args, Response &response)
 {
 	(void)response;
+	if (!_username.empty())
+		return(addResponse(":monserv 462 * :You may not reregister"), 1);
+	else if (args.empty())
+		return(addResponse(":monserv 461 * USER :Not enough parameters"), 1);
 	std::vector<std::string> argsVec = split(args);
+	if (argsVec[0].size() > 20)
+		_username = _username.substr(0, 20);
 	_username = argsVec[0];
 	_hostname = argsVec[1];
 	_servername = argsVec[2];

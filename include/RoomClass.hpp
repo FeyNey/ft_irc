@@ -21,6 +21,8 @@ class Room {
 		std::string	getModes();
 		bool		isOp(std::string nick);
 		bool		isOnRoom(std::string nick);
+		void		changeOpNick(std::string newNick, std::string prevNick);
+
 
 		void	k(std::string pwd, char op);
 		void	o(std::string nick, char op);

@@ -10,8 +10,11 @@ Room::Room(std::string name, ClientSocket* clientSock) : _name(name), _topic("")
 bool	Room::isOp(std::string nick)
 {
 	for (std::vector<std::string>::iterator it = _opsNick.begin(); it != _opsNick.end(); ++it)
+	{
+		std::cout << "isOp :" << nick << "\nit : " << *it <<std::endl;
 		if(nick.compare(*it) == 0)
 			return (true);
+	}
 	return (false);
 }
 
@@ -149,6 +152,20 @@ void	Room::t(char op)
 		_tMode = false;
 	else if (op == '+')
 		_tMode = true;
+}
+
+void Room::changeOpNick(std::string newNick, std::string prevNick)
+{
+	for (std::vector<std::string>::iterator it = _opsNick.begin(); it != _opsNick.end(); ++it)
+	{
+		std::cout << "new : " << newNick << "\nprev : " << prevNick << "\nit : " << *it << std::endl;
+		if (it->compare(prevNick) == 0)
+		{
+			std::cout << "Jy passe" << std::endl;
+			_opsNick.erase(it);
+			_opsNick.push_back(newNick);
+		}
+	}
 }
 
 void	Room::o(std::string nick, char op)
