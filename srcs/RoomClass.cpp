@@ -11,7 +11,6 @@ bool	Room::isOp(std::string nick)
 {
 	for (std::vector<std::string>::iterator it = _opsNick.begin(); it != _opsNick.end(); ++it)
 	{
-		std::cout << "isOp :" << nick << "\nit : " << *it <<std::endl;
 		if(nick.compare(*it) == 0)
 			return (true);
 	}
@@ -76,16 +75,16 @@ int	Room::join(ClientSocket* clientSock, std::string pwd)
 	return (0);
 }
 
-int	Room::sendMsg(std::string msg, ClientSocket* sender)
+int	Room::sendMsg(std::string msg, ClientSocket* sender, std::string cmd)
 {
 	std::string response;
 
 	response = ":" + sender->getnick() + "!" + sender->getusername()
-	+ "@monserv PRIVMSG #" + _name + " :" + msg;
+	+ "@monserv " + cmd + " #" + _name + " :" + msg;
 	for (size_t i = 0; i < _clientSocks.size(); i++)
 	{
-		if (_clientSocks[i] != sender)
-		_clientSocks[i]->addResponse(response);
+		if (!(cmd.compare("PRIVMSG") == 0 && _clientSocks[i] == sender))
+			_clientSocks[i]->addResponse(response);
 	}
 	return (1);
 }
@@ -158,10 +157,8 @@ void Room::changeOpNick(std::string newNick, std::string prevNick)
 {
 	for (std::vector<std::string>::iterator it = _opsNick.begin(); it != _opsNick.end(); ++it)
 	{
-		std::cout << "new : " << newNick << "\nprev : " << prevNick << "\nit : " << *it << std::endl;
 		if (it->compare(prevNick) == 0)
 		{
-			std::cout << "Jy passe" << std::endl;
 			_opsNick.erase(it);
 			_opsNick.push_back(newNick);
 		}
@@ -245,6 +242,37 @@ void	Room::part(ClientSocket *clientSock, std::string msg)
 		}
 	}
 }
+
+std::string	Room::getTopic()
+{
+	return (_topic);
+}
+
+std::string	Room::getTopicTime()
+{
+	std::ostringstream oss;
+	oss << _topicTime;
+	return (oss.str());
+}
+
+std::string Room::getTopicNick()
+{
+	return (_topicNick);
+}
+
+
+bool	Room::getTmode()
+{
+	return (_tMode);
+}
+
+void	Room::setTopic(std::string newTopic, std::string nick)
+{
+	_topic = newTopic;
+	_topicTime = std::time(NULL);
+	_topicNick = nick;
+}
+
 
 Room::~Room()
 {

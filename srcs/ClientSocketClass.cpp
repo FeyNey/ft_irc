@@ -12,6 +12,7 @@ ClientSocket::ClientSocket(int listenFd, std::string pwd, std::vector<Room*> *ro
 	cmdsMap["PART"] = &ClientSocket::part;
 	cmdsMap["INVITE"] = &ClientSocket::invite;
 	cmdsMap["NICK"] = &ClientSocket::nick;
+	cmdsMap["TOPIC"] = &ClientSocket::topic;
 	_len = sizeof(_addr);
 }
 
@@ -140,11 +141,11 @@ std::string	ClientSocket::getusername()
 bool	ClientSocket::isacmd(std::string cmd)
 {
 	static const char* commands[] = {
-		"PING", "MODE", "USER", "JOIN", "PRIVMSG", "PART", "INVITE", "NICK"/*, "PASS", "NOTICE",
-		"TOPIC", "NAMES", "LIST", "WHO", "WHOIS", "WHOWAS", "KICK", "QUIT",
+		"PING", "MODE", "USER", "JOIN", "PRIVMSG", "PART", "INVITE", "NICK", "TOPIC"/*, "PASS", "NOTICE"
+		, "NAMES", "LIST", "WHO", "WHOIS", "WHOWAS", "KICK", "QUIT",
 		"OPER", "DIE", "RESTARD", "KILL", "SQUIT", "CONNECT" */ };
 
-	for (int i = 0; i < 8; i++)
+	for (int i = 0; i < 9; i++)
 	{
 		if (cmd == commands[i])
 			return 1;
@@ -359,10 +360,8 @@ int	ClientSocket::nick(std::string args, Response &response)
 			addResponse(":" + _nick + "!" + _username + "@monserv NICK " + args);
 			for (std::vector<Room*>::iterator itRoom = _rooms->begin(); itRoom != _rooms->end(); ++itRoom)
 			{
-				std::cout << "ROOM : " << (*itRoom)->getName() << std::endl;
 				for (std::vector<std::string>::iterator itName = _roomsNames.begin(); itName != _roomsNames.end(); ++itName)
 				{
-					std::cout << "NAME : " << *itName << std::endl;
 						if ((*itRoom)->getName().compare(*itName) == 0)
 							(*itRoom)->changeOpNick(args, _nick);
 				}
@@ -515,6 +514,63 @@ int	ClientSocket::invite(std::string args, Response &response)
 	return(1);
 }
 
+int	ClientSocket::topic(std::string args, Response &response)
+{
+	(void) response;
+	std::string	roomName;
+	std::string	topic;
+	Room		*room;
+	if (args.empty())
+	return(addResponse(":monserv 461 " + _username + " TOPIC :Not enough parameters"), 1);
+	if (args.find(':') == std::string::npos)
+	{
+		if (args[0] != '#')
+		return (addResponse(":monserv 476 " + _username  + " " + args + " :Bad Channel Mask"), 1);
+		else
+		roomName = args.substr(1, args.size() - 1);
+	}
+	else
+	{
+		if (args[0] != '#')
+		return (addResponse(":monserv 476 " + _username  + " " + args.substr(0, args.find(':') - 1) + " :Bad Channel Mask"), 1);
+		roomName = args.substr(1, args.find(':') - 2);
+	}
+	room = findOnRoom(roomName, *_rooms);
+	if (!room)
+		return (addResponse(":monserv 403 " + _username  + " #" + roomName + " :No such channel"), 1);
+	else if (!room->isOnRoom(_nick))
+		return (addResponse(":monserv 442 " + _username  + " #" + roomName + " :You're not on that channel"), 1);
+	else if (room->getTmode() && !room->isOp(_nick))
+		return (addResponse(":monserv 482 " + _username  + " #" + roomName + " :You're not channel operator"), 1);
+	topic = room->getTopic();
+	if (args.find(':') == std::string::npos)
+	{
+		if (topic.empty())
+		return (addResponse(":monserv 331 " + _username  + " #" + roomName + " :No topic is set"), 1);
+		else
+		{
+			addResponse(":monserv 332 " + _username  + " #" + roomName + " :" + topic);
+			return (addResponse(":monserv 333 " + _username  + " #" + roomName + " " + room->getTopicNick() + " " + room->getTopicTime()), 1);
+		}
+	}
+	else
+	{
+		if (args.find(':') + 1 == args.size())
+		{
+			room->setTopic("", _nick);
+			room->sendMsg("", this, "TOPIC");
+			return (0);
+		}
+		else
+		{
+			room->setTopic(args.substr(args.find(':') + 1, args.size() - args.find(':') - 1), _nick);
+			room->sendMsg(room->getTopic(), this, "TOPIC");
+			return (0);
+		}
+
+	}
+}
+
 int	ClientSocket::privmsg(std::string args, Response &response)
 {
 	(void)response;
@@ -530,7 +586,7 @@ int	ClientSocket::privmsg(std::string args, Response &response)
 				for (size_t j = 0; j < (*_rooms).size(); j++)
 				{
 					if ((*_rooms)[j]->getName() == roomName)
-						(*_rooms)[j]->sendMsg(args.substr(args.find(":"), args.size() - args.find(":")), this);
+						(*_rooms)[j]->sendMsg(args.substr(args.find(":"), args.size() - args.find(":")), this, "PRIVMSG");
 				}
 			}
 		}
