@@ -11,6 +11,7 @@ ClientSocket::ClientSocket(int listenFd, std::string pwd, std::vector<Room*> *ro
 	cmdsMap["PRIVMSG"] = &ClientSocket::privmsg;
 	cmdsMap["PART"] = &ClientSocket::part;
 	cmdsMap["INVITE"] = &ClientSocket::invite;
+	cmdsMap["NICK"] = &ClientSocket::nick;
 	_len = sizeof(_addr);
 }
 
@@ -69,7 +70,7 @@ void ClientSocket::execute(std::string cmd, std::string args, Response	&response
 			(*pollVec)[pollIndex].events = POLLOUT;
 		}
 		else if(cmd.compare("NICK") == 0)
-			_nick = args;
+			(this->*cmdsMap["NICK"])(args, response);
 		else if(cmd.compare("USER") == 0)
 			(this->*cmdsMap["USER"])(args, response);
 		else if (_connected)
@@ -139,11 +140,11 @@ std::string	ClientSocket::getusername()
 bool	ClientSocket::isacmd(std::string cmd)
 {
 	static const char* commands[] = {
-		"PING", "MODE", "USER", "JOIN", "PRIVMSG", "PART", "INVITE"/*, "PASS", "NOTICE",
-		"TOPIC", "NAMES", "LIST", "WHO", "WHOIS", "WHOWAS", "NICK", "KICK", "QUIT",
+		"PING", "MODE", "USER", "JOIN", "PRIVMSG", "PART", "INVITE", "NICK"/*, "PASS", "NOTICE",
+		"TOPIC", "NAMES", "LIST", "WHO", "WHOIS", "WHOWAS", "KICK", "QUIT",
 		"OPER", "DIE", "RESTARD", "KILL", "SQUIT", "CONNECT" */ };
 
-	for (int i = 0; i < 7; i++)
+	for (int i = 0; i < 8; i++)
 	{
 		if (cmd == commands[i])
 			return 1;
@@ -344,7 +345,23 @@ int	ClientSocket::mode(std::string args, Response &response)
 	}
 	return(0);
 }
-
+int	ClientSocket::nick(std::string args, Response &response)
+{
+	(void) response;
+	if (args.empty())
+		addResponse(":monserv 431 * :No nickname given");
+	else if(args.find(':') != std::string::npos || args.find('#') != std::string::npos || args.find(' ') != std::string::npos)
+		addResponse(":monserv 432 " + args + " :Erroneus nickname");
+	else if (!findOnClient(args, *clientSocks))
+	{
+		if (!_nick.empty())
+			addResponse(":" + _nick + "!" + _username + "@monserv NICK " + args);
+		_nick = args;
+	}
+	else
+		addResponse(":monserv 443 * " + args + " :Nickname is already in use");
+	return(0);
+}
 int	ClientSocket::user(std::string args, Response &response)
 {
 	(void)response;

@@ -38,6 +38,7 @@ class ClientSocket : public ASocket {
 		int	ping(std::string args, Response& response);
 		int	mode(std::string args, Response& response);
 		int	user(std::string args, Response& response);
+		int	nick(std::string args, Response &response);
 		int	join(std::string args, Response &response);
 		int	privmsg(std::string args, Response &response);
 		int	part(std::string args, Response &response);

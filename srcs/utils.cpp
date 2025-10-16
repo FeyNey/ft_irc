@@ -29,6 +29,7 @@ Room*	findOnRoom(std::string toFind, std::vector<Room*> vec)
 
 ClientSocket*	findOnClient(std::string toFind, std::vector<ClientSocket*> vec)
 {
+	std::cout << "ICI:" << toFind << std::endl;
 	for (std::vector<ClientSocket*>::iterator it = vec.begin(); it != vec.end(); ++it)
 	{
 		if ((*it)->getnick() == toFind)
