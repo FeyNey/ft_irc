@@ -88,17 +88,26 @@ int	Room::sendMsg(std::string msg, ClientSocket* sender)
 	return (1);
 }
 
+
+
+
 int	Room::Kickmsg(std::string msg, ClientSocket* sender, ClientSocket *excluded)
 {
 	std::string response;
 
 	response = ":" + sender->getnick() + "!" + sender->getusername()
-	+ "@monserv PRIVMSG #" + _name + " :" + msg;
+	+ "@monserv KICK #" + _name + " " + excluded->getnick() + " :" + msg;
+
 	for (size_t i = 0; i < _clientSocks.size(); i++)
 	{
 		if (_clientSocks[i] != excluded) // && _clientSpcks[i] != sender
-		_clientSocks[i]->addResponse(response);
+			_clientSocks[i]->addResponse(response);
+		// if (_clientSocks[i] == excluded)
+			// std::cout << "??? error, found client excluded ???" << std::endl;
 	}
+
+
+	//supprimez des rooms names
 	return (1);
 }
 
@@ -265,15 +274,52 @@ void	Room::part(ClientSocket *clientSock, std::string msg)
 
 void	Room::kick(ClientSocket *user, ClientSocket *client, std::string msg)
 {
+
+	//prvmsg -> you have been kick + remove
+	//client
+
+/* 	std::string response;
 	std::string nick = client->getnick();
-	_nbUser--;
-	// sendPartMsgKick(user, msg, client);
+
 	for (std::vector<ClientSocket*>::iterator it = _clientSocks.begin(); it != _clientSocks.end(); ++it)
 	{
 		if((*it)->getnick().compare(nick) == 0)
 		{
+			std::cout << user->getusername() << " username prs who kick" << std::endl;
+
+			// response = ":" + user->getnick() + "!" + user->getusername()
+			// + "@monserv PRIVMSG #" + _name + " :" + msg;
+
+			response = ":" + user->getnick() + "!" + user->getusername()
+			+ "@monserv KICK #" + _name + " " + client->getnick() + " :" + msg;
+
+			// response += ":monserv " + this->getName() + " " + user->getnick() + " " + msg;
+
+			(*it)->addResponse(response);
+
 			_clientSocks.erase(it);
-			(*it)->addResponse("You haved been KICK from " + this->getName() + " by " + user->getnick() + ":" + msg);
+			_nbUser--;
+			break;
+		}
+	} */
+
+	//user -> me (op)
+	//client -> person to kick
+
+	std::string response;
+	std::string nick = client->getnick();
+
+	for (std::vector<ClientSocket*>::iterator it = _clientSocks.begin(); it != _clientSocks.end(); ++it)
+	{
+		if ((*it)->getnick().compare(nick) == 0)
+		{
+			response = ":" + user->getnick() + "!" + user->getusername()
+			+ "@monserv KICK #" + _name + " " + client->getnick() + ":" + msg;
+
+			(*it)->addResponse(response);
+
+			_clientSocks.erase(it);
+			_nbUser--;
 			break;
 		}
 	}

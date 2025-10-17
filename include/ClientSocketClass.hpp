@@ -46,7 +46,7 @@ class ClientSocket : public ASocket {
 		int	part(std::string args, Response &response);
 		int	kick(std::string args, Response &response);
 		int	kick_user_check(std::string user, Room *salon);
-		int	kick_user(std::string user, std::string comment, Room *salon);
+		int	kick_user(std::string user, std::string comment, Room *salon, Response &response);
 
 		private:
 
