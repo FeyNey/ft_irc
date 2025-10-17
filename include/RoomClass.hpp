@@ -14,6 +14,7 @@ class Room {
 		int		sendMsg(std::string msg, ClientSocket* sender);
 		int		sendPartMsg(std::string msg, ClientSocket* sender);
 		void	part(ClientSocket *clientSock, std::string msg);
+		void	kickpart(ClientSocket *clientSock);
 		void	kick(ClientSocket *user, ClientSocket *clientSock, std::string msg);
 		// int		sendPartMsgKick(ClientSocket *user, std::string msg, ClientSocket* sender);
 		void	sendModesChange(std::string modes, std::string modesArgs, ClientSocket* sender);

@@ -102,12 +102,8 @@ int	Room::Kickmsg(std::string msg, ClientSocket* sender, ClientSocket *excluded)
 	{
 		if (_clientSocks[i] != excluded) // && _clientSpcks[i] != sender
 			_clientSocks[i]->addResponse(response);
-		// if (_clientSocks[i] == excluded)
-			// std::cout << "??? error, found client excluded ???" << std::endl;
 	}
 
-
-	//supprimez des rooms names
 	return (1);
 }
 
@@ -274,45 +270,15 @@ void	Room::part(ClientSocket *clientSock, std::string msg)
 
 void	Room::kick(ClientSocket *user, ClientSocket *client, std::string msg)
 {
-
-	//prvmsg -> you have been kick + remove
-	//client
-
-/* 	std::string response;
-	std::string nick = client->getnick();
-
-	for (std::vector<ClientSocket*>::iterator it = _clientSocks.begin(); it != _clientSocks.end(); ++it)
-	{
-		if((*it)->getnick().compare(nick) == 0)
-		{
-			std::cout << user->getusername() << " username prs who kick" << std::endl;
-
-			// response = ":" + user->getnick() + "!" + user->getusername()
-			// + "@monserv PRIVMSG #" + _name + " :" + msg;
-
-			response = ":" + user->getnick() + "!" + user->getusername()
-			+ "@monserv KICK #" + _name + " " + client->getnick() + " :" + msg;
-
-			// response += ":monserv " + this->getName() + " " + user->getnick() + " " + msg;
-
-			(*it)->addResponse(response);
-
-			_clientSocks.erase(it);
-			_nbUser--;
-			break;
-		}
-	} */
-
-	//user -> me (op)
-	//client -> person to kick
-
 	std::string response;
 	std::string nick = client->getnick();
 
+	std::cout << "will it be ?" << std::endl;
 	for (std::vector<ClientSocket*>::iterator it = _clientSocks.begin(); it != _clientSocks.end(); ++it)
 	{
 		if ((*it)->getnick().compare(nick) == 0)
 		{
+			std::cout << "is in" << std::endl;
 			response = ":" + user->getnick() + "!" + user->getusername()
 			+ "@monserv KICK #" + _name + " " + client->getnick() + ":" + msg;
 
@@ -320,6 +286,26 @@ void	Room::kick(ClientSocket *user, ClientSocket *client, std::string msg)
 
 			_clientSocks.erase(it);
 			_nbUser--;
+			break;
+		}
+	}
+}
+
+void	Room::kickpart(ClientSocket *clientSock)
+{
+	std::string response;
+
+	response = ":" + clientSock->getnick() + "!" + clientSock->getusername()
+	+ "@monserv PART #" + _name;
+
+	clientSock->addResponse(response);
+
+	_nbUser--;
+	for (std::vector<ClientSocket*>::iterator it = _clientSocks.begin(); it != _clientSocks.end(); ++it)
+	{
+		if((*it)->getnick().compare(clientSock->getnick()) == 0)
+		{
+			_clientSocks.erase(it);
 			break;
 		}
 	}

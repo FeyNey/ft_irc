@@ -465,7 +465,6 @@ int	ClientSocket::privmsg(std::string args, Response &response)
 		roomName = args.substr(1, args.find(' ') - 1);
 		for (size_t i = 0; i < _roomsNames.size(); i++)
 		{
-			std::cout << _roomsNames[i] << std::endl;
 			if (roomName == _roomsNames[i])
 			{
 				for (size_t j = 0; j < (*_rooms).size(); j++)
@@ -482,7 +481,7 @@ int	ClientSocket::privmsg(std::string args, Response &response)
 
 void ClientSocket::addResponse(std::string response)
 {
-	std::cout << response << " is my answer" << std::endl;
+	std::cout << "----- " << this->getnick() << " -----" << std::endl;
 	_response += response + "\r\n";
 	(*pollVec)[pollIndex].events = POLLOUT;
 }
@@ -518,14 +517,6 @@ std::vector<std::string> ClientSocket::kick_split(std::string str)
 	}
 	if (pos < str.size())
 		requests.push_back(str.substr(pos, i - pos));
-
-	// std::cout << "request = " << std::endl;
-
-	// for (size_t j = 0; j < requests.size(); j++)
-	// 	std::cout << "[" << requests[j] << "] ";
-
-	// std::cout << std::endl;
-
 	return (requests);
 }
 int	ClientSocket::kick_user(std::string user, std::string comment, Room *salon, Response &response)
@@ -533,38 +524,35 @@ int	ClientSocket::kick_user(std::string user, std::string comment, Room *salon, 
 
 	ClientSocket *client = salon->user_on_room(user);
 
-	// salon->kick(this, client, comment);
-	//deconnect le client de la room
-
-
 	salon->Kickmsg(comment, this, client); //envoie le message a la room
-	// client->_nbRooms--;
 
-	// for (std::vector<std::string>::iterator it = client->_roomsNames.begin(); it != client->_roomsNames.end(); ++it)
-	// {
-	// 	std::cout << *it << std::endl;
-	// 	if (salon->getName().compare((*it)) == 0)
-	// 	{
-			std::cout << "c moon" << std::endl;
-	// 		client->_roomsNames.erase(it);
-	// 		break;
-	// 	}
-	// }
+	salon->kickpart(client); //fait partir le client de la room
 
-	// for (std::vector<Room*>::iterator it = (*client->_rooms).begin(); it != (*client->_rooms).end(); ++it)
-	// {
-	// 	if (salon->getName().compare((*it)->getName()) == 0)
-	// 	{
-	// 		(*client->_rooms).erase(it);
-	// 		break;
-	// 	}
-	// }
-	client->part("#" + salon->getName(), response);
-	//deconnect la room du client (supp tout de son vecteur room ect);
+	// salon->kick(this, client, comment); // a supprimer
 
+	//supprime la room du client;
 
-	//send msgs a la room avec le commentaire
+	for (std::vector<std::string>::iterator it = client->_roomsNames.begin(); it != client->_roomsNames.end(); ++it)
+	{
+		std::cout << *it << std::endl;
+		if (salon->getName().compare((*it)) == 0)
+		{
+			// std::cout << "c moon" << std::endl;
+			client->_roomsNames.erase(it);
+			break;
+		}
+	}
 
+	for (std::vector<Room*>::iterator it = (*client->_rooms).begin(); it != (*client->_rooms).end(); ++it)
+	{
+		if (salon->getName().compare((*it)->getName()) == 0)
+		{
+			(*client->_rooms).erase(it);
+			break;
+		}
+	}
+
+	(void)response;
 	return (0);
 }
 
@@ -577,12 +565,6 @@ int	ClientSocket::kick(std::string args, Response &response)
 	std::vector<std::string> args_tab;
 	args_tab = split(args);
 	std::cout << "Commande KICK" << std::endl;
-	// if (args_tab.size() > 3) //verif
-		// return (addResponse("monserv 463 " + _nick + "KICK :too mutch parameters"), 1);
-	// for (std::vector<std::string>::iterator it = args_tab.begin(); it != args_tab.end(); ++it)
-	// {
-	// 	std::cout << *it << std::endl;
-	// }
 
 	if (args_tab[0][0] != '#' || args_tab.size() < 2)
 		return (addResponse(":monserv 461 " + _nick + "KICK :Not enough parameters"), 1);
@@ -615,10 +597,7 @@ int	ClientSocket::kick(std::string args, Response &response)
 		}
 	}
 	if (kick_user_check(args_tab[1], (*_rooms)[i]) == 0)
-	{
-		std::cout << "\t||| Running my kick cmd |||" << std::endl;
-		kick_user(args_tab[1], comment, (*_rooms)[i], response);
-	}
+	kick_user(args_tab[1], comment, (*_rooms)[i], response);
 
 	return (0);
 }
