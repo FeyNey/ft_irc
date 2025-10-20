@@ -44,6 +44,7 @@ class ClientSocket : public ASocket {
 		int	part(std::string args, Response &response);
 		int	invite(std::string args, Response &response);
 		int	topic(std::string args, Response &response);
+		int	kick(std::string args, Response &response);
 
 
 
@@ -56,9 +57,14 @@ class ClientSocket : public ASocket {
 		void		_unlock(Response	&response, std::string cmd, std::string args);
 		int			_isRoom(std::string roomName);
 		void		_interactMode(std::string modes, std::string modesArgs, Room *room);
+		int			kick_user(std::string user, std::string comment, Room *salon, Response &response);
+		int			kick_user_check(std::string user, Room *salon);
+
 
 		std::vector< std::pair<std::string, std::string> >	_parseJoinArgs(std::string args);
-		std::vector<std::string>				_parsePartArgs(std::string args);
+		std::vector<std::string>							_parsePartArgs(std::string args);
+		std::vector<std::string> 							kick_split(std::string str);
+
 		size_t			_nbRooms;
 		const size_t	_maxNbRooms;
 		std::map<std::string, int (ClientSocket::*)(std::string, Response&)> cmdsMap;

@@ -25,9 +25,18 @@ class Room {
 		bool		getTmode();
 		void		setTopic(std::string newTopic, std::string nick);
 
-		bool		isOp(std::string nick);
-		bool		isOnRoom(std::string nick);
-		void		changeOpNick(std::string newNick, std::string prevNick);
+		bool			isOp(std::string nick);
+		bool			isOnRoom(std::string nick);
+		void			changeOpNick(std::string newNick, std::string prevNick);
+		ClientSocket*	user_on_room(std::string nick);
+		bool			is_in_room(std::string nick);
+		void			kickpart(ClientSocket *clientSock);
+		void			kick(ClientSocket *user, ClientSocket *client, std::string msg);
+		int				Kickmsg(std::string msg, ClientSocket* sender, ClientSocket *excluded);
+
+
+
+
 
 
 		void	k(std::string pwd, char op);

@@ -17,6 +17,23 @@ bool	Room::isOp(std::string nick)
 	return (false);
 }
 
+bool	Room::is_in_room(std::string nick)
+{
+	for (size_t i = 0; i < _clientSocks.size(); i++)
+	if (nick.compare(_clientSocks[i]->getnick()) == 0)
+		return (true);
+	return (false);
+}
+
+ClientSocket	*Room::user_on_room(std::string nick)
+{
+	for (size_t i = 0; i < _clientSocks.size(); i++)
+	if (nick.compare(_clientSocks[i]->getnick()) == 0)
+		return (_clientSocks[i]);
+	return (NULL);
+
+}
+
 bool	Room::isOnRoom(std::string nick)
 {
 	for (std::vector<ClientSocket *>::iterator it = _clientSocks.begin(); it != _clientSocks.end(); ++it)
@@ -273,6 +290,65 @@ void	Room::setTopic(std::string newTopic, std::string nick)
 	_topicNick = nick;
 }
 
+
+int	Room::Kickmsg(std::string msg, ClientSocket* sender, ClientSocket *excluded)
+{
+	std::string response;
+
+	response = ":" + sender->getnick() + "!" + sender->getusername()
+	+ "@monserv KICK #" + _name + " " + excluded->getnick() + " :" + msg;
+
+	for (size_t i = 0; i < _clientSocks.size(); i++)
+	{
+		if (_clientSocks[i] != excluded) // && _clientSpcks[i] != sender
+			_clientSocks[i]->addResponse(response);
+	}
+
+	return (1);
+}
+
+void	Room::kick(ClientSocket *user, ClientSocket *client, std::string msg)
+{
+	std::string response;
+	std::string nick = client->getnick();
+
+	std::cout << "will it be ?" << std::endl;
+	for (std::vector<ClientSocket*>::iterator it = _clientSocks.begin(); it != _clientSocks.end(); ++it)
+	{
+		if ((*it)->getnick().compare(nick) == 0)
+		{
+			std::cout << "is in" << std::endl;
+			response = ":" + user->getnick() + "!" + user->getusername()
+			+ "@monserv KICK #" + _name + " " + client->getnick() + ":" + msg;
+
+			(*it)->addResponse(response);
+
+			_clientSocks.erase(it);
+			_nbUser--;
+			break;
+		}
+	}
+}
+
+void	Room::kickpart(ClientSocket *clientSock)
+{
+	std::string response;
+
+	response = ":" + clientSock->getnick() + "!" + clientSock->getusername()
+	+ "@monserv PART #" + _name;
+
+	clientSock->addResponse(response);
+
+	_nbUser--;
+	for (std::vector<ClientSocket*>::iterator it = _clientSocks.begin(); it != _clientSocks.end(); ++it)
+	{
+		if((*it)->getnick().compare(clientSock->getnick()) == 0)
+		{
+			_clientSocks.erase(it);
+			break;
+		}
+	}
+}
 
 Room::~Room()
 {

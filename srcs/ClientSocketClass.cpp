@@ -13,6 +13,8 @@ ClientSocket::ClientSocket(int listenFd, std::string pwd, std::vector<Room*> *ro
 	cmdsMap["INVITE"] = &ClientSocket::invite;
 	cmdsMap["NICK"] = &ClientSocket::nick;
 	cmdsMap["TOPIC"] = &ClientSocket::topic;
+	cmdsMap["KICK"] = &ClientSocket::kick;
+
 	_len = sizeof(_addr);
 }
 
@@ -141,8 +143,8 @@ std::string	ClientSocket::getusername()
 bool	ClientSocket::isacmd(std::string cmd)
 {
 	static const char* commands[] = {
-		"PING", "MODE", "USER", "JOIN", "PRIVMSG", "PART", "INVITE", "NICK", "TOPIC"/*, "PASS", "NOTICE"
-		, "NAMES", "LIST", "WHO", "WHOIS", "WHOWAS", "KICK", "QUIT",
+		"PING", "MODE", "USER", "JOIN", "PRIVMSG", "PART", "INVITE", "NICK", "TOPIC", "KICK"/*, "PASS", "NOTICE"
+		, "NAMES", "LIST", "WHO", "WHOIS", "WHOWAS", "QUIT",
 		"OPER", "DIE", "RESTARD", "KILL", "SQUIT", "CONNECT" */ };
 
 	for (int i = 0; i < 9; i++)
@@ -593,6 +595,119 @@ int	ClientSocket::privmsg(std::string args, Response &response)
 	}
 	return (0);
 
+}
+
+int	ClientSocket::kick_user_check(std::string user, Room *salon)
+{
+	if (user == _nick)
+		return (addResponse(":monserv 482 " + _nick + " #" + salon->getName() + " :You can't kick yourself"), 1);
+	if (salon->isOp(user))
+		return (addResponse(":monserv 445 " + _nick + " #" + salon->getName() + " :Can't kick an operator"), 1);
+	if (!salon->is_in_room(user))
+		return (addResponse(":monserv 446 " + _nick + " #" + salon->getName() + " :is not on channel"), 1);
+	return (0);
+}
+
+std::vector<std::string> ClientSocket::kick_split(std::string str)
+{
+	size_t							pos = 0;
+	size_t 						i = 0;
+	std::vector<std::string>	requests;
+
+	for(i = 0; i < str.size(); i++)
+	{
+		if (str[i] == ',')
+		{
+			requests.push_back(str.substr(pos, i - pos));
+			pos = i + 1;
+			i++;
+		}
+	}
+	if (pos < str.size())
+		requests.push_back(str.substr(pos, i - pos));
+	return (requests);
+}
+int	ClientSocket::kick_user(std::string user, std::string comment, Room *salon, Response &response)
+{
+
+	ClientSocket *client = salon->user_on_room(user);
+
+	salon->Kickmsg(comment, this, client); //envoie le message a la room
+
+	salon->kickpart(client); //fait partir le client de la room
+
+	// salon->kick(this, client, comment); // a supprimer
+
+	//supprime la room du client;
+
+	for (std::vector<std::string>::iterator it = client->_roomsNames.begin(); it != client->_roomsNames.end(); ++it)
+	{
+		std::cout << *it << std::endl;
+		if (salon->getName().compare((*it)) == 0)
+		{
+			// std::cout << "c moon" << std::endl;
+			client->_roomsNames.erase(it);
+			break;
+		}
+	}
+
+	for (std::vector<Room*>::iterator it = (*client->_rooms).begin(); it != (*client->_rooms).end(); ++it)
+	{
+		if (salon->getName().compare((*it)->getName()) == 0)
+		{
+			(*client->_rooms).erase(it);
+			break;
+		}
+	}
+
+	(void)response;
+	return (0);
+}
+
+int	ClientSocket::kick(std::string args, Response &response)
+{
+	(void)response;
+	int	i = -1;
+	int	b = 0;
+	std::string	comment;
+	std::vector<std::string> args_tab;
+	args_tab = split(args);
+	std::cout << "Commande KICK" << std::endl;
+
+	if (args_tab[0][0] != '#' || args_tab.size() < 2)
+		return (addResponse(":monserv 461 " + _nick + "KICK :Not enough parameters"), 1);
+	for (size_t j = 0; j < (*_rooms).size(); j++)
+	{
+		if ((*_rooms)[j]->getName() == &args_tab[0][1])
+		{
+			i = j;
+			break;
+		}
+	}
+	if (i == -1)
+		return (addResponse(":monserv 403 " + _nick + " " + args_tab[0] + " :No such channel"), 1);
+	for (std::vector<std::string>::iterator it = _roomsNames.begin(); it != _roomsNames.end(); ++it)
+	{
+		if (*it == &args_tab[0][1]) // sans le #
+			b = 1;
+	}
+	if (b == 0)
+		return (addResponse(":monserv 442 " + _nick + " " + args_tab[0] + " :You're not on that channel"), 1);
+	if (!(*_rooms)[i]->isOp(_nick))
+		return (addResponse(":monserv 482 " + _nick + " " + args_tab[0] + " :You're not channel operator"), 1);
+
+	for (size_t k = 1; k < args_tab.size(); ++k)
+	{
+		if (k > 2)
+		{
+			comment += " ";
+			comment += args_tab[k];
+		}
+	}
+	if (kick_user_check(args_tab[1], (*_rooms)[i]) == 0)
+	kick_user(args_tab[1], comment, (*_rooms)[i], response);
+
+	return (0);
 }
 
 void ClientSocket::addResponse(std::string response)
