@@ -47,7 +47,7 @@ class Room {
 
 	private:
 
-		std::time_t					_topicTime;
+		time_t					_topicTime;
 		std::vector<ClientSocket*>	_clientSocks;
 		std::vector<std::string>	_opsNick;
 		std::vector<std::string>	_inviteNick;

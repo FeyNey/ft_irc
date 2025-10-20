@@ -147,7 +147,7 @@ bool	ClientSocket::isacmd(std::string cmd)
 		, "NAMES", "LIST", "WHO", "WHOIS", "WHOWAS", "QUIT",
 		"OPER", "DIE", "RESTARD", "KILL", "SQUIT", "CONNECT" */ };
 
-	for (int i = 0; i < 9; i++)
+	for (int i = 0; i < 10; i++)
 	{
 		if (cmd == commands[i])
 			return 1;
