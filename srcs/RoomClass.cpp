@@ -295,8 +295,12 @@ int	Room::Kickmsg(std::string msg, ClientSocket* sender, ClientSocket *excluded)
 {
 	std::string response;
 
+	std::string response_client;
+
 	response = ":" + sender->getnick() + "!" + sender->getusername()
 	+ "@monserv KICK #" + _name + " " + excluded->getnick() + " :" + msg;
+
+	// response_client = ":" + se
 
 	for (size_t i = 0; i < _clientSocks.size(); i++)
 	{

@@ -636,29 +636,24 @@ int	ClientSocket::kick_user(std::string user, std::string comment, Room *salon, 
 
 	salon->kickpart(client); //fait partir le client de la room
 
-	// salon->kick(this, client, comment); // a supprimer
-
-	//supprime la room du client;
-
 	for (std::vector<std::string>::iterator it = client->_roomsNames.begin(); it != client->_roomsNames.end(); ++it)
 	{
 		std::cout << *it << std::endl;
 		if (salon->getName().compare((*it)) == 0)
 		{
-			// std::cout << "c moon" << std::endl;
 			client->_roomsNames.erase(it);
 			break;
 		}
 	}
 
-	for (std::vector<Room*>::iterator it = (*client->_rooms).begin(); it != (*client->_rooms).end(); ++it)
-	{
-		if (salon->getName().compare((*it)->getName()) == 0)
-		{
-			(*client->_rooms).erase(it);
-			break;
-		}
-	}
+	// for (std::vector<Room*>::iterator it = (*client->_rooms).begin(); it != (*client->_rooms).end(); ++it)
+	// {
+	// 	if (salon->getName().compare((*it)->getName()) == 0)
+	// 	{
+	// 		(*client->_rooms).erase(it);
+	// 		break;
+	// 	}
+	// }
 
 	(void)response;
 	return (0);
@@ -705,7 +700,7 @@ int	ClientSocket::kick(std::string args, Response &response)
 		}
 	}
 	if (kick_user_check(args_tab[1], (*_rooms)[i]) == 0)
-	kick_user(args_tab[1], comment, (*_rooms)[i], response);
+		kick_user(args_tab[1], comment, (*_rooms)[i], response);
 
 	return (0);
 }
