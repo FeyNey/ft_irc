@@ -377,12 +377,22 @@ int	ClientSocket::nick(std::string args, Response &response)
 }
 int	ClientSocket::user(std::string args, Response &response)
 {
+	int	i;
+
+	i = 0;
 	(void)response;
 	if (!_username.empty())
 		return(addResponse(":monserv 462 * :You may not reregister"), 1);
 	else if (args.empty())
 		return(addResponse(":monserv 461 * USER :Not enough parameters"), 1);
 	std::vector<std::string> argsVec = split(args);
+	for (std::vector<std::string>::iterator it = argsVec.begin(); it != argsVec.end(); it++)
+	{
+		// std::cout << *it << std::endl;
+		i++;
+	}
+	if (i < 4)
+		return(addResponse(":monserv 461 * USER :Not enough parameters"), 1);
 	if (argsVec[0].size() > 20)
 		_username = _username.substr(0, 20);
 	_username = argsVec[0];
