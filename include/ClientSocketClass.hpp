@@ -31,9 +31,11 @@ class ClientSocket : public ASocket {
 		static bool					isacmd(std::string cmd);
 		std::vector<std::string>	split(std::string str);
 
-		std::string getpwd();
-		std::string getnick();
-		std::string getusername();
+		std::string	getpwd();
+		std::string	getnick();
+		bool		getQuit();
+		std::string	getusername();
+
 
 		int	ping(std::string args, Response& response);
 		int	mode(std::string args, Response& response);
@@ -45,6 +47,7 @@ class ClientSocket : public ASocket {
 		int	invite(std::string args, Response &response);
 		int	topic(std::string args, Response &response);
 		int	kick(std::string args, Response &response);
+		int	quit(std::string args, Response &response);
 
 
 
@@ -54,11 +57,14 @@ class ClientSocket : public ASocket {
 		int			_listenFd;
 		bool		_unlocked;
 		bool		_connected;
+		bool		_quit;
 		void		_unlock(Response	&response, std::string cmd, std::string args);
 		int			_isRoom(std::string roomName);
 		void		_interactMode(std::string modes, std::string modesArgs, Room *room);
 		int			kick_user(std::string user, std::string comment, Room *salon, Response &response);
 		int			kick_user_check(std::string user, Room *salon);
+		void		decrPoll();
+
 
 
 		std::vector< std::pair<std::string, std::string> >	_parseJoinArgs(std::string args);

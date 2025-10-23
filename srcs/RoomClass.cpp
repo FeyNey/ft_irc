@@ -34,11 +34,20 @@ ClientSocket	*Room::user_on_room(std::string nick)
 
 }
 
+
+std::vector<ClientSocket *>	Room::getClients()
+{
+	return (_clientSocks);
+}
+
 bool	Room::isOnRoom(std::string nick)
 {
+
 	for (std::vector<ClientSocket *>::iterator it = _clientSocks.begin(); it != _clientSocks.end(); ++it)
+	{
 		if(nick.compare((*it)->getnick()) == 0)
 			return (true);
+	}
 	return (false);
 }
 
@@ -102,6 +111,7 @@ int	Room::sendMsg(std::string msg, ClientSocket* sender, std::string cmd)
 	{
 		if (!(cmd.compare("PRIVMSG") == 0 && _clientSocks[i] == sender))
 			_clientSocks[i]->addResponse(response);
+
 	}
 	return (1);
 }
@@ -283,11 +293,50 @@ bool	Room::getTmode()
 	return (_tMode);
 }
 
+bool	Room::getNbUser()
+{
+	return (_nbUser);
+}
+
 void	Room::setTopic(std::string newTopic, std::string nick)
 {
 	_topic = newTopic;
 	_topicTime = std::time(NULL);
 	_topicNick = nick;
+}
+
+void	Room::delUser(std::string nick)
+{
+	for (std::vector<std::string>::iterator it = _opsNick.begin(); it != _opsNick.end(); ++it)
+	{
+		if (nick.compare(*it) == 0)
+		{
+			it = _opsNick.erase(it) - 1;
+			if (_clientSocks.size() > 1)
+			{
+				if (_clientSocks[0]->getnick().compare(nick) != 0)
+				{
+					_opsNick.push_back(_clientSocks[0]->getnick());
+					sendModesChange("+o", _clientSocks[0]->getnick(), _clientSocks[0]);
+				}
+				else
+				{
+					_opsNick.push_back(_clientSocks[1]->getnick());
+					sendModesChange("+o", _clientSocks[1]->getnick(), _clientSocks[1]);
+				}
+			}
+			break;
+		}
+	}
+	for (std::vector<ClientSocket *>::iterator it = _clientSocks.begin(); it != _clientSocks.end(); ++it)
+	{
+		if (nick.compare((*it)->getnick()) == 0)
+		{
+			it = _clientSocks.erase(it) - 1;
+			break;
+		}
+	}
+	_nbUser--;
 }
 
 
@@ -312,12 +361,10 @@ void	Room::kick(ClientSocket *user, ClientSocket *client, std::string msg)
 	std::string response;
 	std::string nick = client->getnick();
 
-	std::cout << "will it be ?" << std::endl;
 	for (std::vector<ClientSocket*>::iterator it = _clientSocks.begin(); it != _clientSocks.end(); ++it)
 	{
 		if ((*it)->getnick().compare(nick) == 0)
 		{
-			std::cout << "is in" << std::endl;
 			response = ":" + user->getnick() + "!" + user->getusername()
 			+ "@monserv KICK #" + _name + " " + client->getnick() + ":" + msg;
 

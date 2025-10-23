@@ -56,7 +56,18 @@ void	Server::pollLoop()
 		else if (_pollVec[i].revents == POLLOUT)
 		{
 			_clientSocks[i-1]->sendResponse();
-			// std::cout << _clientSocks[i - 1]->getusername() << "<-- username of my client" << std::endl;
+			if (_clientSocks[i-1]->getQuit())
+			{
+				delete(_clientSocks[i-1]);
+				_clientSocks.erase(_clientSocks.begin() + i - 1);
+				for (std::vector<ClientSocket *>::iterator it = _clientSocks.begin(); it != _clientSocks.end(); ++it)
+				{
+					if ((*it)->pollIndex > i)
+						(*it)->pollIndex--;
+				}
+				_pollVec.erase(_pollVec.begin() + i);
+				_nbClients--;
+			}
 		}
 }
 

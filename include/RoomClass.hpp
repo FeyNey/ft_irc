@@ -15,15 +15,18 @@ class Room {
 		int		sendPartMsg(std::string msg, ClientSocket* sender);
 		void	part(ClientSocket *clientSock, std::string msg);
 		void	sendModesChange(std::string modes, std::string modesArgs, ClientSocket* sender);
+		int		sendQuitMsg(std::string msg, ClientSocket* sender);
 		void	invite(ClientSocket *invited, ClientSocket *inviter);
 
-		std::string	getName();
-		std::string	getModes();
-		std::string	getTopic();
-		std::string	getTopicTime();
-		std::string getTopicNick();
-		bool		getTmode();
-		void		setTopic(std::string newTopic, std::string nick);
+		std::string					getName();
+		std::string					getModes();
+		std::string					getTopic();
+		std::string					getTopicTime();
+		std::string					getTopicNick();
+		std::vector<ClientSocket *>	getClients();
+		bool						getTmode();
+		bool						getNbUser();
+		void						setTopic(std::string newTopic, std::string nick);
 
 		bool			isOp(std::string nick);
 		bool			isOnRoom(std::string nick);
@@ -33,6 +36,8 @@ class Room {
 		void			kickpart(ClientSocket *clientSock);
 		void			kick(ClientSocket *user, ClientSocket *client, std::string msg);
 		int				Kickmsg(std::string msg, ClientSocket* sender, ClientSocket *excluded);
+		void			delUser(std::string nick);
+
 
 
 

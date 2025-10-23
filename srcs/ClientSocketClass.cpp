@@ -1,7 +1,7 @@
 #include <ClientSocketClass.hpp>
 #include "RoomClass.hpp"
 
-ClientSocket::ClientSocket(int listenFd, std::string pwd, std::vector<Room*> *rooms) : _listenFd(listenFd), _unlocked(false), _connected(false), _nbRooms(0), _maxNbRooms(10),_response(""), _pwd(pwd), _nick(""), _username(""), _rooms(rooms)
+ClientSocket::ClientSocket(int listenFd, std::string pwd, std::vector<Room*> *rooms) : _listenFd(listenFd), _unlocked(false), _connected(false), _quit(false), _nbRooms(0), _maxNbRooms(10),_response(""), _pwd(pwd), _nick(""), _username(""), _rooms(rooms)
 {
 	std::cout << "new client has been created" << std::endl;
 	cmdsMap["PING"] = &ClientSocket::ping;
@@ -14,6 +14,8 @@ ClientSocket::ClientSocket(int listenFd, std::string pwd, std::vector<Room*> *ro
 	cmdsMap["NICK"] = &ClientSocket::nick;
 	cmdsMap["TOPIC"] = &ClientSocket::topic;
 	cmdsMap["KICK"] = &ClientSocket::kick;
+	cmdsMap["QUIT"] = &ClientSocket::quit;
+
 
 	_len = sizeof(_addr);
 }
@@ -119,12 +121,28 @@ void	ClientSocket::sendResponse()
 	(*pollVec)[pollIndex].events = POLLIN;
 	_response.clear();
 	_request.clear();
+	if (_quit)
+	{
+		for (std::vector<Room *>::iterator it = _rooms->begin(); it != _rooms->end(); ++it)
+		{
+			if ((*it)->isOnRoom(_nick))
+				(*it)->delUser(_nick);
+			if ((*it)->getNbUser() == 0)
+				it = _rooms->erase(it) - 1;
+		}
+	}
 }
 
 ClientSocket::~ClientSocket()
 {
 	std::cout << "Client Destroyed" << std::endl;
-	close(_fd);
+	if (_fd != -1)
+        close(_fd);
+}
+
+bool	ClientSocket::getQuit()
+{
+	return(_quit);
 }
 
 std::string	ClientSocket::getpwd()
@@ -143,11 +161,11 @@ std::string	ClientSocket::getusername()
 bool	ClientSocket::isacmd(std::string cmd)
 {
 	static const char* commands[] = {
-		"PING", "MODE", "USER", "JOIN", "PRIVMSG", "PART", "INVITE", "NICK", "TOPIC", "KICK"/*, "PASS", "NOTICE"
-		, "NAMES", "LIST", "WHO", "WHOIS", "WHOWAS", "QUIT",
+		"PING", "MODE", "USER", "JOIN", "PRIVMSG", "PART", "INVITE", "NICK", "TOPIC", "KICK", "QUIT"/*, "PASS", "NOTICE"
+		, "NAMES", "LIST", "WHO", "WHOIS", "WHOWAS",
 		"OPER", "DIE", "RESTARD", "KILL", "SQUIT", "CONNECT" */ };
 
-	for (int i = 0; i < 9; i++)
+	for (int i = 0; i < 11; i++)
 	{
 		if (cmd == commands[i])
 			return 1;
@@ -662,6 +680,38 @@ int	ClientSocket::kick_user(std::string user, std::string comment, Room *salon, 
 
 	(void)response;
 	return (0);
+}
+
+int	ClientSocket::quit(std::string args, Response &response)
+{
+	(void) response;
+	std::vector<ClientSocket *> clients;
+	bool find = false;
+	for (std::vector<std::string>::iterator roomIt = _roomsNames.begin(); roomIt != _roomsNames.end(); ++roomIt)
+	{
+
+		Room *room = findOnRoom(*roomIt, *_rooms);
+		std::vector<ClientSocket *> tmpClients = room->getClients();
+		for (std::vector<ClientSocket *>::iterator tmpIt = tmpClients.begin(); tmpIt != tmpClients.end(); ++tmpIt)
+		{
+			for (std::vector<ClientSocket *>::iterator clientIt = clients.begin(); clientIt != clients.end(); ++clientIt)
+			{
+				if ((*tmpIt)->getnick().compare((*clientIt)->getnick()) == 0)
+					find = true;
+			}
+			if (!find)
+				clients.push_back(*tmpIt);
+		}
+	}
+	for (std::vector<ClientSocket *>::iterator lastIt = clients.begin(); lastIt != clients.end(); ++lastIt)
+	{
+		if (_nick.compare((*lastIt)->getnick()) != 0)
+			(*lastIt)->addResponse(":" + _nick + "!" + _username + "@monserv QUIT :Quit: " + args.substr(1, args.size() - 1));
+		else
+			(*lastIt)->addResponse("ERROR :Closing Link: " + _nick  + "!" + _username + "@<host> (Quit" + args);
+	}
+	_quit = true;
+	return(0);
 }
 
 int	ClientSocket::kick(std::string args, Response &response)
