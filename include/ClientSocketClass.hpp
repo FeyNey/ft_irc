@@ -4,10 +4,13 @@
 #include "ASocketClass.hpp"
 #include "RequestClass.hpp"
 #include "ResponseClass.hpp"
+#include <cstdlib>
 #include "poll.h"
 #include <fstream>
 #include <sstream>
 #include "utils.hpp"
+#include <climits>
+#include <ctime>
 
 class Room;
 

@@ -24,7 +24,7 @@ Room*	findOnRoom(std::string toFind, std::vector<Room*> vec)
 		if ((*it)->getName() == toFind)
 			return((*it));
 	}
-	return nullptr;
+	return NULL;
 }
 
 ClientSocket*	findOnClient(std::string toFind, std::vector<ClientSocket*> vec)
@@ -35,7 +35,7 @@ ClientSocket*	findOnClient(std::string toFind, std::vector<ClientSocket*> vec)
 		if ((*it)->getnick() == toFind)
 			return((*it));
 	}
-	return nullptr;
+	return NULL;
 }
 
 std::string getAndDel(std::vector<std::string> &vec)
