@@ -6,13 +6,14 @@
 /*   By: acoste <acoste@student.42perpignan.fr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/23 17:51:04 by acoste            #+#    #+#             */
-/*   Updated: 2025/10/24 16:26:26 by acoste           ###   ########.fr       */
+/*   Updated: 2025/10/26 21:20:45 by acoste           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <ServerClass.hpp>
 
 bool Server::signal = false;
+bool Server::flag = false;
 
 Server::Server() : _nbClients(0), _fdLSock(0)
 {
@@ -62,10 +63,15 @@ void	Server::pollLoop()
 {
 	poll(&_pollVec[0], _nbClients + 1, 1000);
 	for (size_t i = 0; i < _nbClients + 1; i++)
+	{
+		if (flag == true)
+		{
+				if (_clientSocks[i-1])
+					_clientSocks[i-1]->quitting();
+		}
 		if (_pollVec[i].revents == POLLIN)
 		{
 			i == 0 ?  _createClient() : _clientSocks[i-1]->interact();
-
 		}
 		else if (_pollVec[i].revents == POLLOUT)
 		{
@@ -82,12 +88,15 @@ void	Server::pollLoop()
 				}
 				_pollVec.erase(_pollVec.begin() + i);
 				_nbClients--;
+				if (flag == true && _nbClients == 0)
+					signal = true;
 			}
 		}
+	}
 }
 
 void	Server::signal_handler(int sig)
 {
 	(void)sig;
-	signal = true;
+	flag = true;
 }

@@ -6,7 +6,7 @@
 /*   By: acoste <acoste@student.42perpignan.fr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/23 17:50:47 by acoste            #+#    #+#             */
-/*   Updated: 2025/10/26 18:38:57 by acoste           ###   ########.fr       */
+/*   Updated: 2025/10/26 21:14:34 by acoste           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,8 +120,8 @@ void ClientSocket::interact()
 	std::string	cmd;
 	std::string	args;
 	_request.receive(_fd, this);
-	if (_request.getmsg_end() == 0)
-		return ;
+	// if (_request.getmsg_end() == 0)
+		// return ;
 
 	_request.show();
 

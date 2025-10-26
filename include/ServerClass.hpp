@@ -6,7 +6,7 @@
 /*   By: acoste <acoste@student.42perpignan.fr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/23 17:51:28 by acoste            #+#    #+#             */
-/*   Updated: 2025/10/23 17:51:29 by acoste           ###   ########.fr       */
+/*   Updated: 2025/10/26 21:11:02 by acoste           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ class Server {
 		static void signal_handler(int sig);
 
 		static bool signal;
+		static bool flag;
 
 	private :
 
