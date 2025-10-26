@@ -6,14 +6,14 @@
 /*   By: acoste <acoste@student.42perpignan.fr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/23 17:50:35 by acoste            #+#    #+#             */
-/*   Updated: 2025/10/26 16:26:06 by acoste           ###   ########.fr       */
+/*   Updated: 2025/10/26 18:12:35 by acoste           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "RequestClass.hpp"
 #include "ClientSocketClass.hpp"
 
-Request::Request()
+Request::Request() : _msg_end(0)
 {
 	std::memset(_buffer, 0, 4096);
 }
@@ -22,20 +22,33 @@ Request::~Request()
 {
 }
 
+bool	Request::getmsg_end()
+{
+	return (_msg_end);
+}
+
 std::vector<std::string> Request::split(std::string str)
 {
 	//static char	buff How to do a buff in cppp
 
 	int							pos = 0;
 	std::vector<std::string>	requests;
+	std::string					buffer;
+	int							res = -1;
 
+	_msg_end = 0;
+	buffer += str;
+	res = buffer.find("\r\n");
+	if (res == 0)
+		return (requests);
 
-	for(size_t i = 1; i < str.size(); i++) //i start 1 test//
+	for(size_t i = 1; i < str.size(); i++)
 	{
 		if (str[i] == '\n' && str[i - 1] == '\r')
 		{
 			requests.push_back(str.substr(pos, i - pos - 1));
 			pos = i + 1;
+			_msg_end = 1;
 		}
 	}
 	if (requests.size() == 0)

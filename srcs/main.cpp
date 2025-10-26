@@ -6,7 +6,7 @@
 /*   By: acoste <acoste@student.42perpignan.fr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/23 17:50:54 by acoste            #+#    #+#             */
-/*   Updated: 2025/10/23 17:50:55 by acoste           ###   ########.fr       */
+/*   Updated: 2025/10/26 18:04:02 by acoste           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ int	main(int argc, char **argv)
 
 		serv.launchListenSocket();
 
-		signal(SIGQUIT, Server::signal_handler);
+		// signal(SIGQUIT, Server::signal_handler);
 		signal(SIGINT, Server::signal_handler);
 		//signal(SIGPIPE, SIGING); //ignore sigpipe ?
 

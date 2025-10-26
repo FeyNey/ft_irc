@@ -6,7 +6,7 @@
 /*   By: acoste <acoste@student.42perpignan.fr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/23 17:51:20 by acoste            #+#    #+#             */
-/*   Updated: 2025/10/24 19:00:57 by acoste           ###   ########.fr       */
+/*   Updated: 2025/10/26 17:43:04 by acoste           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ class Request {
 		std::string getArgs();
 		void		clear();
 		std::vector<std::string> split(std::string str);
-
+		bool	getmsg_end();
 
 
 	private :
@@ -48,6 +48,7 @@ class Request {
 		std::vector<std::string>	_requests;
 		std::vector<std::string>	_cmds;
 		std::vector<std::string>	_args;
+		bool						_msg_end;
 
 
 };

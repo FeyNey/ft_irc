@@ -6,7 +6,7 @@
 /*   By: acoste <acoste@student.42perpignan.fr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/23 17:50:47 by acoste            #+#    #+#             */
-/*   Updated: 2025/10/26 13:10:45 by acoste           ###   ########.fr       */
+/*   Updated: 2025/10/26 18:38:57 by acoste           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,6 +72,13 @@ void ClientSocket::_unlock(Response	&response, std::string cmd, std::string args
 
 void ClientSocket::execute(std::string cmd, std::string args, Response	&response)
 {
+	if (cmd.compare("QUIT") == 0)
+	{
+		(this->*cmdsMap["QUIT"])(args, response);
+		std::cout << "MOKAY" << std::endl;
+		(*pollVec)[pollIndex].events = POLLOUT;
+		return ;
+	}
 	if (_unlocked == false)
 	{
 		_unlock(response, cmd, args);
@@ -113,11 +120,13 @@ void ClientSocket::interact()
 	std::string	cmd;
 	std::string	args;
 	_request.receive(_fd, this);
+	if (_request.getmsg_end() == 0)
+		return ;
+
 	_request.show();
 
 	Response	response(_request);
 
-	std::cout << "1" << std::endl;
 	for (size_t i = 0; i < _request.size(); i++)
 	{
 		std::cout << "5" << std::endl;
