@@ -1,4 +1,17 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   RequestClass.cpp                                   :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: acoste <acoste@student.42perpignan.fr>     +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/10/23 17:50:35 by acoste            #+#    #+#             */
+/*   Updated: 2025/10/26 16:26:06 by acoste           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "RequestClass.hpp"
+#include "ClientSocketClass.hpp"
 
 Request::Request()
 {
@@ -11,10 +24,13 @@ Request::~Request()
 
 std::vector<std::string> Request::split(std::string str)
 {
+	//static char	buff How to do a buff in cppp
+
 	int							pos = 0;
 	std::vector<std::string>	requests;
 
-	for(size_t i = 0; i < str.size(); i++)
+
+	for(size_t i = 1; i < str.size(); i++) //i start 1 test//
 	{
 		if (str[i] == '\n' && str[i - 1] == '\r')
 		{
@@ -22,22 +38,26 @@ std::vector<std::string> Request::split(std::string str)
 			pos = i + 1;
 		}
 	}
+	if (requests.size() == 0)
+		requests.push_back(" ");
 	return (requests);
 }
 
-//TODO verif le continue du buffer et si il est plein.
-
-void	Request:: receive(int fd)
+void	Request:: receive(int fd, ClientSocket *client)
 {
 	int		check;
 	size_t	next = 0;
 
-	//pas de \r dans la request ??? avec nc* //ended with \r\n normaly
 	check = recv(fd, &_buffer, 4096, 0);
+
+	std::cout << "buffer: " << _buffer << std::endl;
+	std::cout << "Check " << check << std::endl;
+
 	if (check == 0)
 	{
 		std::cout << "Client disconnected" << std::endl;
 		this->clear(); // set all args to 0, empty
+		client->quitting();
 		return ;
 	}
 	if (check < 0)
@@ -47,32 +67,23 @@ void	Request:: receive(int fd)
 		return ;
 	}
 	_requests = split(_buffer);
-
 	for (size_t i = 0; i < _requests.size(); i++)
 	{
 		next = ft_find(_requests[i], ' ');
-		// if (next == 0)
-		// {
-		// 	std::cout << " -- Invalid request -- " << std::endl;
-		// 	std::cout << "No space found in the request" << std::endl;//TODO reponse a envoyer
-		// 	this->clear();
-		// 	continue;
-		// }
-		_cmds.push_back(_requests[i].substr(0, next));
-		_args.push_back(_requests[i].substr(next + 1, _requests[i].size() - next - 1));
+		std::cout << "2" << std::endl;
+		if (next == 0)
+		{
+			_cmds.push_back(_requests[i].substr(0, _requests[i].length()));
+			_args.push_back(" ");
+			continue;
+		}
+		else
+		{
+			_cmds.push_back(_requests[i].substr(0, next));
+			_args.push_back(_requests[i].substr(next + 1, _requests[i].size() - next - 1));
+		}
 	}
-
-	//std::cout << "Buffer : " << _buffer << std::endl;
-	//std::cout << "next = " << next << std::endl;
-	//std::cout << "Command : " << _cmd << std::endl;
-	//std::cout << "args = " << _args << std::endl;
-
-	// next = ft_find(_buffer, (char)13);
-	// std::cout << "? : " << next << std::endl;
-
-	// next = ft_find(_buffer, (char)10);
-	// std::cout << "? : " << next << std::endl;
-
+	std::memset(_buffer, 0, 4096);
 }
 
 void Request::show()

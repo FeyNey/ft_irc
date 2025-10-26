@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   RoomClass.cpp                                      :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: acoste <acoste@student.42perpignan.fr>     +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/10/23 17:51:01 by acoste            #+#    #+#             */
+/*   Updated: 2025/10/23 19:23:07 by acoste           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "RoomClass.hpp"
 
 Room::Room(std::string name, ClientSocket* clientSock) : _name(name), _topic(""), _pwd(""), _maxUser(UINT_MAX), _nbUser(0), _iMode(false), _kMode(false), _tMode(false), _lMode(false)

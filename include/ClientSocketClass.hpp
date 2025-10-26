@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ClientSocketClass.hpp                              :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: acoste <acoste@student.42perpignan.fr>     +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/10/23 17:51:14 by acoste            #+#    #+#             */
+/*   Updated: 2025/10/23 17:51:15 by acoste           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef CLIENT_SOCKETS_CLASS_HPP
 #define CLIENT_SOCKETS_CLASS_HPP
 
@@ -37,6 +49,7 @@ class ClientSocket : public ASocket {
 		std::string	getpwd();
 		std::string	getnick();
 		bool		getQuit();
+		void		quitting();
 		std::string	getusername();
 
 

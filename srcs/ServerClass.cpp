@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ServerClass.cpp                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: acoste <acoste@student.42perpignan.fr>     +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/10/23 17:51:04 by acoste            #+#    #+#             */
+/*   Updated: 2025/10/24 16:26:26 by acoste           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include <ServerClass.hpp>
 
 bool Server::signal = false;
@@ -34,6 +46,7 @@ void	Server::_createClient()
 {
 	ClientSocket *csock = new ClientSocket(_fdLSock, _pwd, &_rooms);
 	pollfd	pollNodeTmp;
+	std::cout << "CLIENT CONNECTED" << std::endl;
 	pollNodeTmp.fd = csock->connect();
 	pollNodeTmp.events = POLLIN;
 	pollNodeTmp.revents = 0;
@@ -52,12 +65,14 @@ void	Server::pollLoop()
 		if (_pollVec[i].revents == POLLIN)
 		{
 			i == 0 ?  _createClient() : _clientSocks[i-1]->interact();
+
 		}
 		else if (_pollVec[i].revents == POLLOUT)
 		{
 			_clientSocks[i-1]->sendResponse();
 			if (_clientSocks[i-1]->getQuit())
 			{
+				std::cout << "CLIENT HAS QUITTED" << std::endl;
 				delete(_clientSocks[i-1]);
 				_clientSocks.erase(_clientSocks.begin() + i - 1);
 				for (std::vector<ClientSocket *>::iterator it = _clientSocks.begin(); it != _clientSocks.end(); ++it)
