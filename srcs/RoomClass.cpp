@@ -6,7 +6,7 @@
 /*   By: acoste <acoste@student.42perpignan.fr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/23 17:51:01 by acoste            #+#    #+#             */
-/*   Updated: 2025/10/23 19:23:07 by acoste           ###   ########.fr       */
+/*   Updated: 2025/10/27 13:40:10 by acoste           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -280,6 +280,8 @@ void	Room::part(ClientSocket *clientSock, std::string msg)
 			break;
 		}
 	}
+	// if (_clientSocks.size() == 0)
+		// delete this;
 }
 
 std::string	Room::getTopic()

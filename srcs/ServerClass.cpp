@@ -6,7 +6,7 @@
 /*   By: acoste <acoste@student.42perpignan.fr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/23 17:51:04 by acoste            #+#    #+#             */
-/*   Updated: 2025/10/26 21:20:45 by acoste           ###   ########.fr       */
+/*   Updated: 2025/10/27 13:40:00 by acoste           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,8 +66,10 @@ void	Server::pollLoop()
 	{
 		if (flag == true)
 		{
-				if (_clientSocks[i-1])
-					_clientSocks[i-1]->quitting();
+				for (std::vector<ClientSocket *>::iterator it = _clientSocks.begin(); it != _clientSocks.end(); ++it)
+				{
+					(*it)->quitting();
+				}
 		}
 		if (_pollVec[i].revents == POLLIN)
 		{
@@ -88,11 +90,13 @@ void	Server::pollLoop()
 				}
 				_pollVec.erase(_pollVec.begin() + i);
 				_nbClients--;
-				if (flag == true && _nbClients == 0)
-					signal = true;
+				// if (flag == true && _nbClients == 0)
+					// signal = true;
 			}
 		}
 	}
+	if (flag == true && _nbClients == 0)
+		signal = true;
 }
 
 void	Server::signal_handler(int sig)

@@ -6,7 +6,7 @@
 /*   By: acoste <acoste@student.42perpignan.fr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/23 17:50:47 by acoste            #+#    #+#             */
-/*   Updated: 2025/10/26 21:14:34 by acoste           ###   ########.fr       */
+/*   Updated: 2025/10/27 13:34:37 by acoste           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -537,8 +537,8 @@ int	ClientSocket::join(std::string args, Response &response)
 			}
 		}
 		if (!isCreated)
-		{(
-			*_rooms).push_back(new Room(roomName, this));
+		{
+			(*_rooms).push_back(new Room(roomName, this));
 			addResponse(":monserv MODE #" + roomName + " +o " + _nick);
 		}
 	}
@@ -701,15 +701,6 @@ int	ClientSocket::kick_user(std::string user, std::string comment, Room *salon, 
 			break;
 		}
 	}
-
-	// for (std::vector<Room*>::iterator it = (*client->_rooms).begin(); it != (*client->_rooms).end(); ++it)
-	// {
-	// 	if (salon->getName().compare((*it)->getName()) == 0)
-	// 	{
-	// 		(*client->_rooms).erase(it);
-	// 		break;
-	// 	}
-	// }
 
 	(void)response;
 	return (0);

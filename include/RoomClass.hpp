@@ -6,7 +6,7 @@
 /*   By: acoste <acoste@student.42perpignan.fr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/23 17:51:26 by acoste            #+#    #+#             */
-/*   Updated: 2025/10/23 17:51:27 by acoste           ###   ########.fr       */
+/*   Updated: 2025/10/27 13:36:35 by acoste           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,7 +64,7 @@ class Room {
 
 	private:
 
-		time_t					_topicTime;
+		time_t						_topicTime;
 		std::vector<ClientSocket*>	_clientSocks;
 		std::vector<std::string>	_opsNick;
 		std::vector<std::string>	_inviteNick;
