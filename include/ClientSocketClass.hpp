@@ -6,7 +6,7 @@
 /*   By: acoste <acoste@student.42perpignan.fr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/23 17:51:14 by acoste            #+#    #+#             */
-/*   Updated: 2025/10/27 14:00:06 by acoste           ###   ########.fr       */
+/*   Updated: 2025/10/27 21:52:55 by acoste           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@ class ClientSocket : public ASocket {
 		bool		getQuit();
 		void		quitting();
 		std::string	getusername();
-
+		static std::string	stash;
 
 		int	ping(std::string args, Response& response);
 		int	mode(std::string args, Response& response);
@@ -65,7 +65,8 @@ class ClientSocket : public ASocket {
 		int	topic(std::string args, Response &response);
 		int	kick(std::string args, Response &response);
 		int	quit(std::string args, Response &response);
-
+		int	repeat(std::string args, Response &response);
+		int	note(std::string args, Response &respomse);
 
 
 		private:

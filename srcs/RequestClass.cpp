@@ -6,7 +6,7 @@
 /*   By: acoste <acoste@student.42perpignan.fr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/23 17:50:35 by acoste            #+#    #+#             */
-/*   Updated: 2025/10/26 20:44:29 by acoste           ###   ########.fr       */
+/*   Updated: 2025/10/27 22:13:59 by acoste           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,20 +27,11 @@ bool	Request::getmsg_end()
 	return (_msg_end);
 }
 
-std::vector<std::string> Request::split(std::string str)
-{
-	//static char	buff How to do a buff in cppp
 
+std::vector<std::string> Request::split(std::string &str)
+{
 	int							pos = 0;
 	std::vector<std::string>	requests;
-	// std::string					buffer;
-	// int							res = -1;
-
-	// _msg_end = 0;
-	// buffer += str;
-	// res = buffer.find("\r\n");
-	// if (res == 0)
-	// 	return (requests);
 
 	for(size_t i = 1; i < str.size(); i++)
 	{
@@ -48,23 +39,21 @@ std::vector<std::string> Request::split(std::string str)
 		{
 			requests.push_back(str.substr(pos, i - pos - 1));
 			pos = i + 1;
-			// _msg_end = 1;
+			if (i + 1 >= str.size())
+				str.clear();
 		}
 	}
-	if (requests.size() == 0)
-		requests.push_back(" ");
 	return (requests);
 }
 
-void	Request:: receive(int fd, ClientSocket *client)
+void	Request:: receive(int fd, ClientSocket *client, std::string &stash)
 {
 	int		check;
 	size_t	next = 0;
 
 	check = recv(fd, &_buffer, 4096, 0);
 
-	std::cout << "buffer: " << _buffer << std::endl;
-	std::cout << "Check " << check << std::endl;
+	stash += _buffer;
 
 	if (check == 0)
 	{
@@ -79,11 +68,10 @@ void	Request:: receive(int fd, ClientSocket *client)
 		this->clear(); // set all args to 0
 		return ;
 	}
-	_requests = split(_buffer);
+	_requests = split(stash);
 	for (size_t i = 0; i < _requests.size(); i++)
 	{
 		next = ft_find(_requests[i], ' ');
-		std::cout << "2" << std::endl;
 		if (next == 0)
 		{
 			_cmds.push_back(_requests[i].substr(0, _requests[i].length()));

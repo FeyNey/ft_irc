@@ -6,7 +6,7 @@
 /*   By: acoste <acoste@student.42perpignan.fr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/23 17:51:20 by acoste            #+#    #+#             */
-/*   Updated: 2025/10/26 17:43:04 by acoste           ###   ########.fr       */
+/*   Updated: 2025/10/27 22:03:58 by acoste           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,13 +33,13 @@ class Request {
 
 		void	show();
 		size_t	size();
-		void	receive(int fd, ClientSocket *client);
+		void	receive(int fd, ClientSocket *client, std::string &stash);
 		int		ft_find(std::string str, char c);
 		void	disconnected();
 		std::string getCmd();
 		std::string getArgs();
 		void		clear();
-		std::vector<std::string> split(std::string str);
+		std::vector<std::string> split(std::string &str);
 		bool	getmsg_end();
 
 

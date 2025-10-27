@@ -6,7 +6,7 @@
 /*   By: acoste <acoste@student.42perpignan.fr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/23 17:51:04 by acoste            #+#    #+#             */
-/*   Updated: 2025/10/27 13:40:00 by acoste           ###   ########.fr       */
+/*   Updated: 2025/10/27 19:18:09 by acoste           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,8 +90,6 @@ void	Server::pollLoop()
 				}
 				_pollVec.erase(_pollVec.begin() + i);
 				_nbClients--;
-				// if (flag == true && _nbClients == 0)
-					// signal = true;
 			}
 		}
 	}
