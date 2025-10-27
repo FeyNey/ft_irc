@@ -6,7 +6,7 @@
 /*   By: acoste <acoste@student.42perpignan.fr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/23 17:51:01 by acoste            #+#    #+#             */
-/*   Updated: 2025/10/27 13:40:10 by acoste           ###   ########.fr       */
+/*   Updated: 2025/10/27 13:56:59 by acoste           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -123,7 +123,6 @@ int	Room::sendMsg(std::string msg, ClientSocket* sender, std::string cmd)
 	{
 		if (!(cmd.compare("PRIVMSG") == 0 && _clientSocks[i] == sender))
 			_clientSocks[i]->addResponse(response);
-
 	}
 	return (1);
 }

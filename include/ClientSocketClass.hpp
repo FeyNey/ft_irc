@@ -6,7 +6,7 @@
 /*   By: acoste <acoste@student.42perpignan.fr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/23 17:51:14 by acoste            #+#    #+#             */
-/*   Updated: 2025/10/26 18:38:00 by acoste           ###   ########.fr       */
+/*   Updated: 2025/10/27 14:00:06 by acoste           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,7 @@ class ClientSocket : public ASocket {
 		void						interactcmd(std::string cmd, std::string args, Response &response);
 		static bool					isacmd(std::string cmd);
 		std::vector<std::string>	split(std::string str);
+		void	sendMsgCli(ClientSocket *me, ClientSocket *receip, std::string response);
 
 		std::string	getpwd();
 		std::string	getnick();
@@ -81,7 +82,7 @@ class ClientSocket : public ASocket {
 		int			kick_user_check(std::string user, Room *salon);
 		void		decrPoll();
 
-		
+
 		std::vector< std::pair<std::string, std::string> >	_parseJoinArgs(std::string args);
 		std::vector<std::string>							_parsePartArgs(std::string args);
 		std::vector<std::string> 							kick_split(std::string str);

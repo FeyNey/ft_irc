@@ -6,7 +6,7 @@
 /*   By: acoste <acoste@student.42perpignan.fr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/23 17:50:47 by acoste            #+#    #+#             */
-/*   Updated: 2025/10/27 13:34:37 by acoste           ###   ########.fr       */
+/*   Updated: 2025/10/27 15:13:43 by acoste           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -629,10 +629,31 @@ int	ClientSocket::topic(std::string args, Response &response)
 	}
 }
 
+void	ClientSocket::sendMsgCli(ClientSocket *me, ClientSocket *receip, std::string msg)
+{
+	std::string response;
+
+	response = ":" + me->getnick() + "!" + me->getusername()
+	+ "@monserv " + "PRIVMSG " + receip->getnick() + " :" + msg;
+
+	if (msg.empty() || msg.find(":") == std::string::npos)
+	{
+		this->addResponse(":monserv 401 " + _nick + " :No text to send");
+		return ;
+	}
+	receip->addResponse(response);
+	return ;
+}
+
 int	ClientSocket::privmsg(std::string args, Response &response)
 {
 	(void)response;
 	std::string msg;
+	std::string arg1;
+
+	bool	exist = false;
+	// msg = args.substr(args.find(":"), args.size() - args.find(":"));
+
 	if(args[0] == '#')
 	{
 		std::string roomName;
@@ -647,6 +668,22 @@ int	ClientSocket::privmsg(std::string args, Response &response)
 						(*_rooms)[j]->sendMsg(args.substr(args.find(":"), args.size() - args.find(":")), this, "PRIVMSG");
 				}
 			}
+		}
+	}
+	else
+	{
+		arg1 = args.substr(0, args.find(' '));
+		for (std::vector<ClientSocket *>::iterator it = clientSocks->begin(); it < clientSocks->end(); it++)
+		{
+			if (arg1 == (*it)->getnick())
+			{
+				sendMsgCli(this, *it, args.substr(args.find(":"), args.size() - args.find(":")));
+				exist = true;
+			}
+		}
+		if (exist == false)
+		{
+			this->addResponse(":monserv 401 " + _nick + " " + arg1 + " :No such nick/channel");
 		}
 	}
 	return (0);
