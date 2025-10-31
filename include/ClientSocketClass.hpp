@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ClientSocketClass.hpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: acoste <acoste@student.42perpignan.fr>     +#+  +:+       +#+        */
+/*   By: evella <evella@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/23 17:51:14 by acoste            #+#    #+#             */
-/*   Updated: 2025/10/27 21:52:55 by acoste           ###   ########.fr       */
+/*   Updated: 2025/10/31 14:30:40 by evella           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,7 @@ class ClientSocket : public ASocket {
 		bool		getQuit();
 		void		quitting();
 		std::string	getusername();
+		void	setPart(bool state);
 		static std::string	stash;
 
 		int	ping(std::string args, Response& response);
@@ -76,6 +77,7 @@ class ClientSocket : public ASocket {
 		bool		_unlocked;
 		bool		_connected;
 		bool		_quit;
+		bool		_part;
 		void		_unlock(Response	&response, std::string cmd, std::string args);
 		int			_isRoom(std::string roomName);
 		void		_interactMode(std::string modes, std::string modesArgs, Room *room);

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   RoomClass.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: acoste <acoste@student.42perpignan.fr>     +#+  +:+       +#+        */
+/*   By: evella <evella@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/23 17:51:01 by acoste            #+#    #+#             */
-/*   Updated: 2025/10/27 13:56:59 by acoste           ###   ########.fr       */
+/*   Updated: 2025/10/31 14:28:06 by evella           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -258,6 +258,7 @@ std::string	Room::getModes()
 void	Room::part(ClientSocket *clientSock, std::string msg)
 {
 	std::string nick = clientSock->getnick();
+	clientSock->setPart(true);
 	if(isOp(nick))
 	{
 		for (std::vector<std::string>::iterator it = _opsNick.begin(); it != _opsNick.end(); ++it)
@@ -265,6 +266,16 @@ void	Room::part(ClientSocket *clientSock, std::string msg)
 			if((*it).compare(nick) == 0)
 			{
 				_opsNick.erase(it);
+				if (_opsNick.size() == 0 && _clientSocks.size() > 1 && _clientSocks[0]->getnick().compare(nick) != 0)
+				{
+					_opsNick.push_back(_clientSocks[0]->getnick());
+					sendModesChange("+o", _clientSocks[0]->getnick(), _clientSocks[0]);
+				}
+				else if (_opsNick.size() == 0 && _clientSocks.size() > 1)
+				{
+					_opsNick.push_back(_clientSocks[1]->getnick());
+					sendModesChange("+o", _clientSocks[1]->getnick(), _clientSocks[1]);
+				}
 				break;
 			}
 		}
@@ -279,8 +290,7 @@ void	Room::part(ClientSocket *clientSock, std::string msg)
 			break;
 		}
 	}
-	// if (_clientSocks.size() == 0)
-		// delete this;
+
 }
 
 std::string	Room::getTopic()

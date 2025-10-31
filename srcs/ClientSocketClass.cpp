@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ClientSocketClass.cpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: acoste <acoste@student.42perpignan.fr>     +#+  +:+       +#+        */
+/*   By: evella <evella@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/23 17:50:47 by acoste            #+#    #+#             */
-/*   Updated: 2025/10/27 22:18:42 by acoste           ###   ########.fr       */
+/*   Updated: 2025/10/31 14:32:22 by evella           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 
 std::string ClientSocket::stash;
 
-ClientSocket::ClientSocket(int listenFd, std::string pwd, std::vector<Room*> *rooms) : _listenFd(listenFd), _unlocked(false), _connected(false), _quit(false), _nbRooms(0), _maxNbRooms(10),_response(""), _pwd(pwd), _nick(""), _username(""), _rooms(rooms)
+ClientSocket::ClientSocket(int listenFd, std::string pwd, std::vector<Room*> *rooms) : _listenFd(listenFd), _unlocked(false), _connected(false), _quit(false), _part(false),_nbRooms(0), _maxNbRooms(10),_response(""), _pwd(pwd), _nick(""), _username(""), _rooms(rooms)
 {
 	std::cout << "new client has been created" << std::endl;
 	cmdsMap["PING"] = &ClientSocket::ping;
@@ -33,6 +33,11 @@ ClientSocket::ClientSocket(int listenFd, std::string pwd, std::vector<Room*> *ro
 	cmdsMap["NOTE"] = &ClientSocket::note;
 
 	_len = sizeof(_addr);
+}
+
+void	ClientSocket::setPart(bool state)
+{
+	_part = state;
 }
 
 int ClientSocket::connect()
@@ -147,15 +152,16 @@ void	ClientSocket::sendResponse()
 	(*pollVec)[pollIndex].events = POLLIN;
 	_response.clear();
 	_request.clear();
-	if (_quit)
+	if (_quit || _part)
 	{
 		for (std::vector<Room *>::iterator it = _rooms->begin(); it != _rooms->end(); ++it)
 		{
-			if ((*it)->isOnRoom(_nick))
+			if ((*it)->isOnRoom(_nick) && _quit)
 				(*it)->delUser(_nick);
 			if ((*it)->getNbUser() == 0)
 				it = _rooms->erase(it) - 1;
 		}
+		_part = false;
 	}
 }
 
