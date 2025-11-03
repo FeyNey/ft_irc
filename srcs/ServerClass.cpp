@@ -6,7 +6,7 @@
 /*   By: acoste <acoste@student.42perpignan.fr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/23 17:51:04 by acoste            #+#    #+#             */
-/*   Updated: 2025/10/27 19:18:09 by acoste           ###   ########.fr       */
+/*   Updated: 2025/11/03 15:16:43 by acoste           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ bool Server::flag = false;
 
 Server::Server() : _nbClients(0), _fdLSock(0)
 {
-
+	std::cout << " Server: monserv lauched" << std::endl;
 }
 
 Server::Server(int port, std::string pwd) : _nbClients(0), _fdLSock(0)
@@ -28,8 +28,7 @@ Server::Server(int port, std::string pwd) : _nbClients(0), _fdLSock(0)
 
 Server::~Server()
 {
-	//liberer memoire client; TODO
-	// std::cout << "Serveur Destructor called" << std::endl;
+	std::cout << "Serveur closed" << std::endl;
 }
 
 void	Server::launchListenSocket()
@@ -47,7 +46,6 @@ void	Server::_createClient()
 {
 	ClientSocket *csock = new ClientSocket(_fdLSock, _pwd, &_rooms);
 	pollfd	pollNodeTmp;
-	std::cout << "CLIENT CONNECTED" << std::endl;
 	pollNodeTmp.fd = csock->connect();
 	pollNodeTmp.events = POLLIN;
 	pollNodeTmp.revents = 0;
@@ -80,7 +78,6 @@ void	Server::pollLoop()
 			_clientSocks[i-1]->sendResponse();
 			if (_clientSocks[i-1]->getQuit())
 			{
-				std::cout << "CLIENT HAS QUITTED" << std::endl;
 				delete(_clientSocks[i-1]);
 				_clientSocks.erase(_clientSocks.begin() + i - 1);
 				for (std::vector<ClientSocket *>::iterator it = _clientSocks.begin(); it != _clientSocks.end(); ++it)

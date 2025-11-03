@@ -6,7 +6,7 @@
 /*   By: acoste <acoste@student.42perpignan.fr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/23 17:51:26 by acoste            #+#    #+#             */
-/*   Updated: 2025/10/27 13:36:35 by acoste           ###   ########.fr       */
+/*   Updated: 2025/11/03 18:10:30 by acoste           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,12 +49,7 @@ class Room {
 		void			kick(ClientSocket *user, ClientSocket *client, std::string msg);
 		int				Kickmsg(std::string msg, ClientSocket* sender, ClientSocket *excluded);
 		void			delUser(std::string nick);
-
-
-
-
-
-
+		void			cleanup(void);
 
 		void	k(std::string pwd, char op);
 		void	o(std::string nick, char op);

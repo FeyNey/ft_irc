@@ -6,7 +6,7 @@
 /*   By: acoste <acoste@student.42perpignan.fr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/23 17:50:35 by acoste            #+#    #+#             */
-/*   Updated: 2025/10/27 22:13:59 by acoste           ###   ########.fr       */
+/*   Updated: 2025/11/03 15:13:00 by acoste           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,15 +57,13 @@ void	Request:: receive(int fd, ClientSocket *client, std::string &stash)
 
 	if (check == 0)
 	{
-		std::cout << "Client disconnected" << std::endl;
-		this->clear(); // set all args to 0, empty
+		this->clear();
 		client->quitting();
 		return ;
 	}
 	if (check < 0)
 	{
 		std::cout << "Recv failed" << std::endl;
-		this->clear(); // set all args to 0
 		return ;
 	}
 	_requests = split(stash);

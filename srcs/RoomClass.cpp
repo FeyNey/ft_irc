@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   RoomClass.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: evella <evella@student.42.fr>              +#+  +:+       +#+        */
+/*   By: acoste <acoste@student.42perpignan.fr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/23 17:51:01 by acoste            #+#    #+#             */
-/*   Updated: 2025/10/31 14:28:06 by evella           ###   ########.fr       */
+/*   Updated: 2025/11/03 18:11:05 by acoste           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -422,6 +422,11 @@ void	Room::kickpart(ClientSocket *clientSock)
 			break;
 		}
 	}
+}
+
+void	Room::cleanup(void)
+{
+	_clientSocks.clear();
 }
 
 Room::~Room()

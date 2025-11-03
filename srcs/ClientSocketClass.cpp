@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ClientSocketClass.cpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: evella <evella@student.42.fr>              +#+  +:+       +#+        */
+/*   By: acoste <acoste@student.42perpignan.fr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/23 17:50:47 by acoste            #+#    #+#             */
-/*   Updated: 2025/10/31 14:32:22 by evella           ###   ########.fr       */
+/*   Updated: 2025/11/03 18:15:54 by acoste           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,6 @@ ClientSocket::ClientSocket(int listenFd, std::string pwd, std::vector<Room*> *ro
 	cmdsMap["KICK"] = &ClientSocket::kick;
 	cmdsMap["QUIT"] = &ClientSocket::quit;
 	cmdsMap["REPEAT"] = &ClientSocket::repeat;
-	cmdsMap["NOTE"] = &ClientSocket::note;
 
 	_len = sizeof(_addr);
 }
@@ -83,7 +82,6 @@ void ClientSocket::execute(std::string cmd, std::string args, Response	&response
 	if (cmd.compare("QUIT") == 0)
 	{
 		(this->*cmdsMap["QUIT"])(args, response);
-		std::cout << "MOKAY" << std::endl;
 		(*pollVec)[pollIndex].events = POLLOUT;
 		return ;
 	}
@@ -119,7 +117,6 @@ void ClientSocket::execute(std::string cmd, std::string args, Response	&response
 			_response += response.str().c_str();
 			(*pollVec)[pollIndex].events = POLLOUT;
 		}
-
 	}
 }
 
@@ -167,9 +164,9 @@ void	ClientSocket::sendResponse()
 
 ClientSocket::~ClientSocket()
 {
-	std::cout << "Client Destroyed" << std::endl;
+	std::cout << "Client disconnected" << std::endl;
 	if (_fd != -1)
-        close(_fd);
+		close(_fd);
 }
 
 bool	ClientSocket::getQuit()
@@ -342,13 +339,6 @@ std::vector<std::string>	ClientSocket::_parsePartArgs(std::string args)
 	return(roomsToPart);
 }
 
-int	ClientSocket::note(std::string args, Response &response)
-{
-	(void)args;
-	(void)response;
-	return (0);
-}
-
 int	ClientSocket::part(std::string args, Response &response)
 {
 	(void) response;
@@ -362,19 +352,18 @@ int	ClientSocket::part(std::string args, Response &response)
 		Room	*room = findOnRoom(*it, *_rooms);
 		room->part(this, message);
 		_nbRooms--;
-
-		// if (room->getNbUser() == 0)
+		// if (it + 1 == roomNames.end())
 		// {
-		// 		for (std::vector<Room *>::iterator it = _rooms->begin(); it != _rooms->end(); ++it)
-		// 		{
-		// 			 if ((*it)->getName().compare(room->getName()) == 0)
-		// 			 {
-		// 				_rooms->erase((it));
-		// 			 }
-		// 		}
+		// 	std::cout << "COUCOU" << std::endl;
+		// 	if (room->getClients().size() == 0)
+		// 	{
+		// 		room->cleanup();
+		// 		delete room;
+		// 	}
 		// }
 	}
-	return(0);
+	return (0);
+
 }
 
 
@@ -674,10 +663,13 @@ int	ClientSocket::privmsg(std::string args, Response &response)
 	(void)response;
 	std::string msg;
 	std::string arg1;
-
 	bool	exist = false;
-	// msg = args.substr(args.find(":"), args.size() - args.find(":"));
 
+	if (args.find(":") == std::string::npos)
+	{
+		this->addResponse(":monserv 401 " + _nick + " :invalid request");
+		return (0);
+	}
 	if(args[0] == '#')
 	{
 		std::string roomName;
@@ -697,10 +689,6 @@ int	ClientSocket::privmsg(std::string args, Response &response)
 	else
 	{
 		arg1 = args.substr(0, args.find(' '));
-		std::cout << arg1 << "  ";
-		std::cout << "DEBUG  " << arg1.compare("Note") << std::endl;
-		if (arg1.compare("Note") == 0)
-			return (0);
 		for (std::vector<ClientSocket *>::iterator it = clientSocks->begin(); it < clientSocks->end(); it++)
 		{
 			if (arg1 == (*it)->getnick())
@@ -759,7 +747,6 @@ int	ClientSocket::kick_user(std::string user, std::string comment, Room *salon, 
 
 	for (std::vector<std::string>::iterator it = client->_roomsNames.begin(); it != client->_roomsNames.end(); ++it)
 	{
-		std::cout << *it << std::endl;
 		if (salon->getName().compare((*it)) == 0)
 		{
 			client->_roomsNames.erase(it);
@@ -819,7 +806,6 @@ int	ClientSocket::kick(std::string args, Response &response)
 	std::string	comment;
 	std::vector<std::string> args_tab;
 	args_tab = split(args);
-	std::cout << "Commande KICK" << std::endl;
 
 	if (args_tab[0][0] != '#' || args_tab.size() < 2)
 		return (addResponse(":monserv 461 " + _nick + "KICK :Not enough parameters"), 1);
