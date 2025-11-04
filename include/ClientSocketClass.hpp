@@ -6,7 +6,7 @@
 /*   By: acoste <acoste@student.42perpignan.fr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/23 17:51:14 by acoste            #+#    #+#             */
-/*   Updated: 2025/11/03 18:10:23 by acoste           ###   ########.fr       */
+/*   Updated: 2025/11/04 01:33:33 by acoste           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,9 @@ class ClientSocket : public ASocket {
 		bool		getQuit();
 		void		quitting();
 		std::string	getusername();
+		std::string	getstash();
+		void		addstash(std::string buffer);
+		void		clearstash();
 		void	setPart(bool state);
 
 		int	ping(std::string args, Response& response);
@@ -70,7 +73,7 @@ class ClientSocket : public ASocket {
 
 		private:
 
-		static std::string	stash;
+		std::string	_stash;
 		socklen_t 	_len;
 		int			_listenFd;
 		bool		_unlocked;
@@ -83,7 +86,6 @@ class ClientSocket : public ASocket {
 		int			kick_user(std::string user, std::string comment, Room *salon, Response &response);
 		int			kick_user_check(std::string user, Room *salon);
 		void		decrPoll();
-
 
 		std::vector< std::pair<std::string, std::string> >	_parseJoinArgs(std::string args);
 		std::vector<std::string>							_parsePartArgs(std::string args);

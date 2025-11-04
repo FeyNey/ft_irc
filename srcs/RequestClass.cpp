@@ -6,7 +6,7 @@
 /*   By: acoste <acoste@student.42perpignan.fr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/23 17:50:35 by acoste            #+#    #+#             */
-/*   Updated: 2025/11/03 15:13:00 by acoste           ###   ########.fr       */
+/*   Updated: 2025/11/04 01:33:05 by acoste           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,10 +28,11 @@ bool	Request::getmsg_end()
 }
 
 
-std::vector<std::string> Request::split(std::string &str)
+std::vector<std::string> Request::split(ClientSocket *client)
 {
 	int							pos = 0;
 	std::vector<std::string>	requests;
+	std::string str = client->getstash();
 
 	for(size_t i = 1; i < str.size(); i++)
 	{
@@ -40,20 +41,20 @@ std::vector<std::string> Request::split(std::string &str)
 			requests.push_back(str.substr(pos, i - pos - 1));
 			pos = i + 1;
 			if (i + 1 >= str.size())
-				str.clear();
+				client->clearstash();
 		}
 	}
 	return (requests);
 }
 
-void	Request:: receive(int fd, ClientSocket *client, std::string &stash)
+void	Request:: receive(int fd, ClientSocket *client)
 {
 	int		check;
 	size_t	next = 0;
 
 	check = recv(fd, &_buffer, 4096, 0);
 
-	stash += _buffer;
+	client->addstash(_buffer);
 
 	if (check == 0)
 	{
@@ -66,7 +67,7 @@ void	Request:: receive(int fd, ClientSocket *client, std::string &stash)
 		std::cout << "Recv failed" << std::endl;
 		return ;
 	}
-	_requests = split(stash);
+	_requests = split(client);
 	for (size_t i = 0; i < _requests.size(); i++)
 	{
 		next = ft_find(_requests[i], ' ');

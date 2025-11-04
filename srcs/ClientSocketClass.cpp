@@ -6,14 +6,13 @@
 /*   By: acoste <acoste@student.42perpignan.fr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/23 17:50:47 by acoste            #+#    #+#             */
-/*   Updated: 2025/11/03 18:15:54 by acoste           ###   ########.fr       */
+/*   Updated: 2025/11/04 01:34:24 by acoste           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <ClientSocketClass.hpp>
 #include "RoomClass.hpp"
 
-std::string ClientSocket::stash;
 
 ClientSocket::ClientSocket(int listenFd, std::string pwd, std::vector<Room*> *rooms) : _listenFd(listenFd), _unlocked(false), _connected(false), _quit(false), _part(false),_nbRooms(0), _maxNbRooms(10),_response(""), _pwd(pwd), _nick(""), _username(""), _rooms(rooms)
 {
@@ -126,7 +125,7 @@ void ClientSocket::interact()
 {
 	std::string	cmd;
 	std::string	args;
-	_request.receive(_fd, this, stash);
+	_request.receive(_fd, this);
 	_request.show();
 
 	Response	response(_request);
@@ -156,7 +155,10 @@ void	ClientSocket::sendResponse()
 			if ((*it)->isOnRoom(_nick) && _quit)
 				(*it)->delUser(_nick);
 			if ((*it)->getNbUser() == 0)
+			{
+				delete *it;
 				it = _rooms->erase(it) - 1;
+			}
 		}
 		_part = false;
 	}
@@ -853,4 +855,20 @@ void	ClientSocket::quitting(void)
 {
 	(*pollVec)[pollIndex].events = POLLOUT;
 	_quit = 1;
+}
+
+void	ClientSocket::addstash(std::string buffer)
+{
+	_stash += buffer;
+}
+
+void	ClientSocket::clearstash()
+{
+	_stash.clear();
+}
+
+
+std::string	ClientSocket::getstash()
+{
+	return(_stash);
 }
