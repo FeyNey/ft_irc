@@ -6,7 +6,7 @@
 /*   By: acoste <acoste@student.42perpignan.fr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/23 17:50:50 by acoste            #+#    #+#             */
-/*   Updated: 2025/10/23 17:50:51 by acoste           ###   ########.fr       */
+/*   Updated: 2025/11/04 15:52:19 by acoste           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ void ListenSocket::setport(int port)
 	_port = port;
 	if (port == 0)
 	{
-		_port = 8080;
+		_port = 6667;
 	}
 	std::cout << "Port that would be connected is number " << _port << std::endl;
 }

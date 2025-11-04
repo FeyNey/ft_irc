@@ -6,7 +6,7 @@
 /*   By: acoste <acoste@student.42perpignan.fr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/23 17:50:47 by acoste            #+#    #+#             */
-/*   Updated: 2025/11/04 01:34:24 by acoste           ###   ########.fr       */
+/*   Updated: 2025/11/04 17:18:29 by acoste           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -649,7 +649,7 @@ void	ClientSocket::sendMsgCli(ClientSocket *me, ClientSocket *receip, std::strin
 	std::string response;
 
 	response = ":" + me->getnick() + "!" + me->getusername()
-	+ "@monserv " + "PRIVMSG " + receip->getnick() + " :" + msg;
+	+ "@monserv " + "PRIVMSG " + receip->getnick() + " :" + msg.substr(1, msg.size() - 1);
 
 	if (msg.empty() || msg.find(":") == std::string::npos)
 	{
@@ -683,7 +683,7 @@ int	ClientSocket::privmsg(std::string args, Response &response)
 				for (size_t j = 0; j < (*_rooms).size(); j++)
 				{
 					if ((*_rooms)[j]->getName() == roomName)
-						(*_rooms)[j]->sendMsg(args.substr(args.find(":"), args.size() - args.find(":")), this, "PRIVMSG");
+						(*_rooms)[j]->sendMsg(args.substr(args.find(":") + 1, (args.size() - args.find(":")) - 1), this, "PRIVMSG");
 				}
 			}
 		}
@@ -695,7 +695,7 @@ int	ClientSocket::privmsg(std::string args, Response &response)
 		{
 			if (arg1 == (*it)->getnick())
 			{
-				sendMsgCli(this, *it, args.substr(args.find(":"), args.size() - args.find(":")));
+				sendMsgCli(this, *it, args.substr(args.find(":"), (args.size() - args.find(":"))));
 				exist = true;
 			}
 		}
@@ -715,7 +715,7 @@ int	ClientSocket::kick_user_check(std::string user, Room *salon)
 	if (salon->isOp(user))
 		return (addResponse(":monserv 445 " + _nick + " #" + salon->getName() + " :Can't kick an operator"), 1);
 	if (!salon->is_in_room(user))
-		return (addResponse(":monserv 446 " + _nick + " #" + salon->getName() + " :is not on channel"), 1);
+		return (addResponse(":monserv 441 " + _nick + " " + _nick + " #" + salon->getName() + " :They aren't on that channel"), 1);
 	return (0);
 }
 
@@ -808,7 +808,6 @@ int	ClientSocket::kick(std::string args, Response &response)
 	std::string	comment;
 	std::vector<std::string> args_tab;
 	args_tab = split(args);
-
 	if (args_tab[0][0] != '#' || args_tab.size() < 2)
 		return (addResponse(":monserv 461 " + _nick + "KICK :Not enough parameters"), 1);
 	for (size_t j = 0; j < (*_rooms).size(); j++)
@@ -833,6 +832,17 @@ int	ClientSocket::kick(std::string args, Response &response)
 
 	for (size_t k = 1; k < args_tab.size(); ++k)
 	{
+		if (k == 2)
+		{
+			if (args_tab[k].find(":") == std::string::npos)
+			{
+				return (addResponse(":monserv 461 " + _nick + " " + " :Wrong comment format"), 1);
+			}
+			else
+			{
+				comment += args_tab[k].substr(args_tab[k].find(':') + 1);
+			}
+		}
 		if (k > 2)
 		{
 			comment += " ";

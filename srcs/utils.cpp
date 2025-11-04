@@ -6,7 +6,7 @@
 /*   By: acoste <acoste@student.42perpignan.fr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/23 17:51:08 by acoste            #+#    #+#             */
-/*   Updated: 2025/10/23 17:51:09 by acoste           ###   ########.fr       */
+/*   Updated: 2025/11/04 15:54:16 by acoste           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,6 @@ Room*	findOnRoom(std::string toFind, std::vector<Room*> vec)
 
 ClientSocket*	findOnClient(std::string toFind, std::vector<ClientSocket*> vec)
 {
-	std::cout << "ICI:" << toFind << std::endl;
 	for (std::vector<ClientSocket*>::iterator it = vec.begin(); it != vec.end(); ++it)
 	{
 		if ((*it)->getnick() == toFind)
