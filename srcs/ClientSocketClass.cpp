@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ClientSocketClass.cpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: acoste <acoste@student.42perpignan.fr>     +#+  +:+       +#+        */
+/*   By: evella <evella@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/23 17:50:47 by acoste            #+#    #+#             */
-/*   Updated: 2025/11/04 17:18:29 by acoste           ###   ########.fr       */
+/*   Updated: 2025/11/12 08:50:50 by evella           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -272,6 +272,8 @@ void	ClientSocket::_interactMode(std::string modes, std::string modesArgs, Room 
 			else if (op != '-' || modes[i] == 'o')
 			{
 				lastArg = getAndDel(argsVec);
+				if (lastArg[0] == '#')
+					return(addResponse(":monserv 461 " + _nick + " MODE :Not enough parameters"));
 				argsModesChange += lastArg;
 				if(!argsVec.empty())
 					argsModesChange += " ";
@@ -287,7 +289,12 @@ void	ClientSocket::_interactMode(std::string modes, std::string modesArgs, Room 
 			room->o(lastArg, op);
 		else if (modes[i] == 'l')
 			room->l(lastArg, op);
-		modesChange += modes[i];
+		else if(modes[i] != '+' && modes[i] != '-')
+			addResponse(":monserv 472 " + _nick + " " + modes[i] + " :is unknown mode char to me");
+		if ((modes[i] == 'k' || modes[i] == 'i' || modes[i] == 't' || modes[i] == 'o' || modes[i] == 'l') && op == '+')
+			modesChange = modesChange + "+" + modes[i];
+		else if (op == '-' && (modes[i] == 'k' || modes[i] == 'i' || modes[i] == 't' || modes[i] == 'o' || modes[i] == 'l'))
+			modesChange = modesChange + "-" + modes[i];
 	}
 	room->sendModesChange(modesChange, argsModesChange, this);
 }
