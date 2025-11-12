@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: evella <evella@student.42.fr>              +#+  +:+       +#+        */
+/*   By: acoste <acoste@student.42perpignan.fr>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/23 17:51:08 by acoste            #+#    #+#             */
-/*   Updated: 2025/11/12 08:28:52 by evella           ###   ########.fr       */
+/*   Updated: 2025/11/12 13:33:42 by acoste           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@ ClientSocket*	findOnClient(std::string toFind, std::vector<ClientSocket*> vec)
 std::string getAndDel(std::vector<std::string> &vec)
 {
 	if (vec.empty())
-		return (nullptr);
+		return (NULL);
 	std::string tmp(vec[0]);
 	vec.erase(vec.begin());
 	return (tmp);
